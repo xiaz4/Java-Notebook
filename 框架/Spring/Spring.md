@@ -25,7 +25,7 @@
 
 ### Spring 的框架结构
 
-![spring1](Spring.assets\spring1.jpg)
+![spring1](Spring.image/spring1.jpg)
 
 真正核心的只有三个：**Core、Context和Beans。**
 
@@ -101,13 +101,13 @@ Spring 框架的核心是 Spring 容器。
 
 因为采用了**依赖注入，在初始化的过程中就不可避免的会写大量的new**。这里IoC容器就解决了这个问题。这个容器可以自动对你的代码进行初始化，你只需要维护一个Configuration（可以是xml可以是一段代码），而不用每次初始化一辆车都要亲手去写那一大段初始化的代码。
 
-我们在创建实例的时候不需要了解其中的细节。我们自己手动创建一个instance时候，是从底层往上层new的。![img](Spring.assets\wps2.jpg)
+我们在创建实例的时候不需要了解其中的细节。我们自己手动创建一个instance时候，是从底层往上层new的。![img](Spring.image/wps2.jpg)
 
 IoC Container可以直接隐藏具体的创建实例的细节，在我们来看它就像一个工厂：我们就像是工厂的客户。我们只需要向工厂请求一个Car实例，然后它就给我们按照Config创建了一个Car实例。我们完全不用管这个Car实例是怎么一步一步被创建出来。
 
 因为这个架构要求你在写class的时候需要写相应的Config文件，所以你要初始化很久以前的Service类的时候，前人都已经写好了Config文件，你直接在需要用的地方注入这个Service就可以了。这大大增加了项目的可维护性且降低了开发难度。
 
-![img](Spring.assets\wps3.jpg) 
+![img](Spring.image/wps3.jpg) 
 
 **ioc的思想最核心的地方在于，**资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。彼此不知道对方，Spring帮两者粘合在一起。（支付宝的作用） 
 
@@ -196,7 +196,7 @@ Spring自带了多种类型的应用上下文。下面罗列的几个是你最�
 
 属性的值就只有两个：单例/多例
 
-![img](Spring.assets\wps8.jpg) 
+![img](Spring.image/wps8.jpg) 
 
 - 当我们使用singleton【单例】的时候，从IOC容器获取的对象都是同一个。
 
@@ -248,7 +248,7 @@ lazy-init属性只对singleton【单例】的对象有效…..lazy-init默认为
 
 #### bean生命周期
 
-![img](Spring.assets\wps9.jpg) 
+![img](Spring.image/wps9.jpg) 
 
  Spring上下文中的Bean也类似，如下
 
@@ -468,7 +468,7 @@ public class BussinessProxy implements BussinessInterface{
 
 **由于静态代理需要实现目标对象的相同接口，那么可能会导致代理类会非常非常多….不好维护**
 
-**编译时增强，**他会在编译阶段将AspectJ(切面)织入到Java字节码中，运行的时候就是增强之后的AOP对象。---->因此出现了JDK动态代理。
+**编译时增强**，他会在编译阶段将AspectJ(切面)织入到Java字节码中，运行的时候就是增强之后的AOP对象。---->因此出现了JDK动态代理。
 
 #### JDK 动态代理
 
@@ -569,7 +569,7 @@ public ProxyFactory(Object target){
 
 （2）连接点（Join point）：指方法，在Spring AOP中，**一个连接点 总是 代表一个方法的执行（增强的方法）**。
 
-（3）通知（Advice）：***\*在切面的某个特定的连接点（Join point）上执行的动作。\****通知有各种类型，其中包括“around”、“before”和“after”等通知。许多AOP框架，包括Spring，都是以拦截器做通知模型， 并维护一个以连接点为中心的拦截器链。
+（3）通知（Advice）：**在切面的某个特定的连接点（Join point）上执行的动作。**通知有各种类型，其中包括“around”、“before”和“after”等通知。许多AOP框架，包括Spring，都是以拦截器做通知模型， 并维护一个以连接点为中心的拦截器链。
 
 | **注解**        | **说明**                                                     |
 | --------------- | ------------------------------------------------------------ |
@@ -889,11 +889,9 @@ public class AnnotationScan {
    <bean id="userService" class="UserService" autowire="byType"/>
 ```
 
-|      |                                                              |
-| ---- | ------------------------------------------------------------ |
-|      | ![img](C:\Users\Administrator\Desktop\JAVA基础\框架\Spring.assets\wps10.jpg) |
-
  default：由上级标签`<beans>`的default-autowire属性确定。我们也可以**使用默认自动分配**
+
+  ![img](Spring.image/wps10.jpg)
 
 #### 其他配置依据
 
@@ -1450,19 +1448,19 @@ application.setAdditionalProfiles("new_dev");
 
 spring封装了事务管理的代码：打开事务，提交事务，回滚事务。
 
-真正的数据库层的事务提交和回滚是通过***\*binlog或者redo log\****实现的
+真正的数据库层的事务提交和回滚是通过**binlog或者redo log**实现的
 
  
 
 spring的事务管理分为编程式的事务管理与声明式的事务管理；
 
-所有事务管理都抽象为事务操作管理类（PlatformTransactionManager），事务状态（TransactionStatus）和定义了***\*事务的传播行为和隔离级别\****的类（TransactionDefinition）这三个接口；
+所有事务管理都抽象为事务操作管理类（PlatformTransactionManager），事务状态（TransactionStatus）和定义了**事务的传播行为和隔离级别**的类（TransactionDefinition）这三个接口；
 
-![img](C:\Users\Administrator\Desktop\JAVA基础\框架\Spring.assets\wps11.jpg) 
+![img](Spring.image/wps11.jpg) 
 
  
 
-因为在不同平台，操作事务的代码各不相同，spring提供了一个接口***\*PlatformTransactionManager 接口\****，里面有许多实现类。
+因为在不同平台，操作事务的代码各不相同，spring提供了一个接口PlatformTransactionManager 接口，里面有许多实现类。
 
  
 
@@ -1480,14 +1478,13 @@ spring的事务管理分为编程式的事务管理与声明式的事务管理�
 
 方式一：编程式事务管理：需要手动编写代码，在实际开发中很少使用。我们需要在代码中调用beginTransaction()、commit()、rollback()等事务管理相关的方法，这就是编程式事务管理。
 
-***\*spring推荐使用TransactionTemplate。\****
+spring推荐使用TransactionTemplate。
 
 方式二：声明式事务
 
-***\*管理建立在AOP之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。\****
-基于TransactionProxyFactoryBean的方式，需要为每个进行***\*事务管理的类做相应配置\*******\*
-\****基于***\*AspectJ的XML方式\****，tx标签不需要改动类，在XML文件中配置好即可
-***\*基于注解的方式，@Transactional，配置简单\****，需要在业务层类中添加注解（使用较多）
+管理建立在AOP之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。
+基于TransactionProxyFactoryBean的方式，需要为每个进行事务管理的类做相应配置
+基于AspectJ的XML方式，tx标签不需要改动类，在XML文件中配置好即可基于注解的方式，@Transactional，配置简单，需要在业务层类中添加注解（使用较多）
 
  
 
