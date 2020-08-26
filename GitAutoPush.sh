@@ -20,6 +20,6 @@ fi
 #提交到github
 git push github master
 #提交到码云
-#git push gitee master
+git push gitee master
 
 echo "GitAutoPush Ending..."

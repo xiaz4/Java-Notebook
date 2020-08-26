@@ -125,12 +125,17 @@ git config --global core.editor "vim"
 
 #### 创建本地 git 仓库，并与Git仓库关联
 
+自己自定义一个文件夹，例如Note；
+
 ```bash
-#此命令初始化一个新本地仓库，它在工作目录下生成一个名为.git的隐藏文件夹。
+#进入Note文件夹，右键bash here
 git init
-#关联GitHub或码云的远程库，查看.git下的config可看到关联
-git remote add github https://github.com/xiaz4/Java-Notebook.git
-git remote add gitee https://gitee.com/xiaz4/Java-Notebook.git
+#此命令初始化一个新本地仓库
+mkdir Java-Notebook
+#进入仓库
+cd Java-Notebook
+#它在工作目录下生成一个名为.git的隐藏文件夹。
+git init
 ```
 
 **.git文件夹里config变成**
@@ -143,17 +148,9 @@ git remote add gitee https://gitee.com/xiaz4/Java-Notebook.git
 	logallrefupdates = true
 	symlinks = false
 	ignorecase = true
-[remote "github"]
-	url = https://github.com/xiaz4/Java-Notebook.git
-	fetch = +refs/heads/*:refs/remotes/github/*
-[remote "gitee"]
-	url = https://gitee.com/xiaz4/Java-Notebook.git
-	fetch = +refs/heads/*:refs/remotes/gitee/*
 ```
 
-
-
-#### 把github上面的仓库克隆到本地
+#### 如果把github上面的仓库克隆到本地
 
 ```bash
 #克隆
@@ -191,11 +188,16 @@ git clone https://github.com.cnpmjs.org/xiaz4/Java-Notebook.git
    >
    > git push 把文件从master（当前分支）提交到github
 
-#### 配置方式同步
+#### 配置GitHub或码云的方式同步
 
-修改.git文件夹内的config文件：
+```bash
+#关联GitHub或码云的远程库，查看.git下的config可看到关联
+git remote add github https://github.com/xiaz4/Java-Notebook.git
+#git remote add gitee https://gitee.com/xiaz4/Java-Notebook.git
+```
 
 ```ruby
+#.git文件夹里config文件内容改变
 [core]
 	repositoryformatversion = 0
 	filemode = false
@@ -211,7 +213,7 @@ git clone https://github.com.cnpmjs.org/xiaz4/Java-Notebook.git
     merge = refs/heads/master
 ```
 
-将上述文件内容[remote "origin"]内容复制，修改origin名称，内容如下：
+修改.git文件夹内的config文件：将上述文件内容[remote "origin"]内容复制，修改origin名称，内容如下：
 
 ```ruby
 [core]
@@ -240,7 +242,7 @@ git clone https://github.com.cnpmjs.org/xiaz4/Java-Notebook.git
 
 > 在文件夹中新建两个sh文件，右键选取Git for Window作为默认打开应用
 
-**GitAutoPull脚本**
+#### GitAutoPull脚本
 
 ```bash
 #!/bin/bash
@@ -253,7 +255,7 @@ git pull github
 git pull gitee
 ```
 
-**GitAutoPush脚本**
+#### GitAutoPush脚本
 
 ```bash
 #!/bin/bash
