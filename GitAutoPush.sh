@@ -18,8 +18,8 @@ fi
 #git push origin master
 
 #提交到github
-#git push -u github master
+git push github master
 #提交到码云
-git push gitee master
+#git push gitee master
 
 echo "GitAutoPush Ending..."
