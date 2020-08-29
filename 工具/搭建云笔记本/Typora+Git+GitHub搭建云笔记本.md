@@ -45,6 +45,9 @@
   
   199.232.68.133    raw.githubusercontent.com
   # GitHub End
+  
+  #shell
+  ipconfig /flushdns
   ```
   
   IP地址经常变动，如果改动hosts还是不显示，可以利用`https://www.ipaddress.com/` 。查询对应的IP地址。例如：raw.githubusercontent.com，查询出199.232.68.133。
@@ -54,27 +57,59 @@
 
 #### 配置SSH
 
-1. 进入 `https://github.com/settings/keys`
-2. 如果页面里已经有一些 key，就点「delete」按钮把这些 key 全删掉。如果没有，就往下看
-3. 点击 **New SSH key**，你需要输入 Title 和 Key，但是你现在没有 key，往下看
-4. 打开 Git Bash
-5. 复制并运行 `rm -rf ~/.ssh/*` 把现有的 ssh key 都删掉，这句命令行如果你多打一个空格，可能就要重装系统了，建议复制运行。
-6. 运行 `ssh-keygen -t rsa -b 4096 -C "你的邮箱"`，注意填写你的邮箱！
-7. 按回车三次
-8. 运行 `cat ~/.ssh/id_rsa.pub`，得到一串东西，完整的复制这串东西
-9. 回到上面第 3 步的页面，在 Title 输入名称，如「我的第一个 key」
-10. 在 Key 里粘贴8中你复制的那串东西
-11. 点击 Add SSH key
-12. 回到 Git Bash
-13. 运行 `ssh -T git@github.com`，你可能会看到这样的提示：
+```bash
+https://github.com/xiaz4/Java-notebook.git
+git@github.com:xiaz4/Java-notebook.git
+#前者是https url 直接有效网址打开，但是用户每次通过git提交的时候都要输入用户名和密码，有没有简单的一点的办法，一次配置，永久使用呢？当然，所以有了第二种地址，也就是SSH URL
+```
 
-![img](https:////upload-images.jianshu.io/upload_images/9351608-2e1ffd46978b8934.png?imageMogr2/auto-orient/strip|imageView2/2/w/1200/format/webp)
+**GitHub配置SSH Key的目的是为了帮助我们在通过git提交代码是，不需要繁琐的验证过程，简化操作流程**
+
+1. 进入 `https://github.com/settings/keys`
+
+2. 如果页面里已经有一些 key，就点「delete」按钮把这些 key 全删掉。如果没有，就往下看
+
+3. 点击 **New SSH key**，你需要输入 Title 和 Key，但是你现在没有 key，往下看
+
+4. 打开 Git Bash
+
+5. ```bash
+   cd ~/.ssh
+   ll
+   //看是否存在 id_rsa 和 id_rsa.pub文件，如果存在，说明已经有SSH Key
+   ```
+
+6. 复制并运行 `rm -rf ~/.ssh/*` 把现有的 ssh key 都删掉，这句命令行如果你多打一个空格，可能就要重装系统了，建议复制运行。
+
+7. 运行 `ssh-keygen -t rsa -b 4096 -C "你的邮箱"`，注意填写你的邮箱！
+
+8. 按回车三次
+
+9. 运行 `cat ~/.ssh/id_rsa.pub`，得到一串东西，完整的复制这串东西
+
+10. 回到上面第 3 步的页面，在 Title 输入名称，如「我的第一个 key」
+
+11. 在 Key 里粘贴8中你复制的那串东西
+
+12. 点击 Add SSH key
+
+13. 回到 Git Bash
+
+14. 运行 `ssh -T git@github.com`，你可能会看到这样的提示：
+
+    ```bash
+    $ ssh -T git@github.com
+    Hi xiaz4! You've successfully authenticated, but GitHub does not provide shell access.
+    ```
+
+15. 之前已经是https的链接，现在想要用SSH提交怎么办？
+    直接修改项目目录下 `.git`文件夹下的`config`文件，将地址修改一下就好了。
 
 输入 yes 回车！
 
 1. 然后如果你看到 `Permission denied (publickey).` 就说明你失败了，请回到第 1 步重来，是的，回到第 1 步重来；如果你看到 `Hi xxx! You've successfully authenticated, but GitHub does not provide shell access.` 就说明你成功了！
 
-好了，终于添加了一个SSH key，了解原理就看这篇 [文章](http://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html)
+好了，终于添加了一个SSH key
 
 **注意：**
 
@@ -284,102 +319,7 @@ git push gitee master
 echo "GitAutoPush Ending..."
 ```
 
-## 二、Git的一些用法
 
-### Git常用命令速查表
-
-![](Typora+Git+GitHub搭建云笔记本.image/20171104180825673.png)
-
-### Git工作流程
-
-### 分支和合并
-
-**查看现存分支**:
- `git branch`
-
-**创建分支** : 
-`git branch 分之名称`
-当前使用的分支会显示成为绿色, 前面带有 " * "， 如果不是当前使用的分支, 显示的是白色, 并且没有 " * " 前缀
-
-**切换分支** :
-`git checkout 分支名称`
-在分支进行操作，文件的改变不会体现在master主分支中，主分支改变， 会体现在其它分支中
-
-**提交分支命令** :
-`git push origin 分支名称` 
-将本地的分支提交到 GitHub中
-
-**合并分支命令**: 
-`git merge 分支名称`
-合并分支之后，分支中有的文件在主分支中也会显示，相当于将branch1 分支中的文件拷贝了一份到master分支中
-
-**删除分支命令** : 
-`git branch -d 分支名称`
-强制删除分支命令 : 如果分支还没有被合并的话， Git是不允许删除这个分支的，此时要想删除该分支，就只能使用下面的命令强制删除该分支：`git branch -D 分支名称`
-
-
-
-### 标签使用(Tag)
-
-> **标签作用**: 在开发的一些关键时期，使用标签来记录这些关键时刻， 例如发布版本, 有重大修改, 升级的时候, 会使用标签记录这些时刻, 来永久标记项目中的关键历史时刻
-
-**标签分类**: Git中的标签分为 轻量级标签(lightweight) 和 带注释的标签(annotated), 一般情况下推荐使用带注释的标签, 如果标签是临时的可以采用轻量级标签
-
-- 轻量级标签 : 轻量级标签中的信息含量很少，这种标签只代表某时刻代码的提交，相当于指向这个提交的指针
-- 带注释标签 : 这种标签是一种校验和, 包含标签名，邮箱，日期，标签信息， GPG签名和验证，它相当于一个对象，封装了这些信息
-
-**查看标签**: 
-`git tag` 
-列出的标签安装ASCII字母顺序确定, 排序没有很明确的意义
-使用限定列出限定后的标签 : 
-`git tag -l v1.*` 
-
-**创建标签** :
-`git tag v2.0` 
-`git tag -a v2.1 -m 'first version'` 
--m后跟的是注释信息，当使用git show v2.1的时候，会显示这个注释信息
-`git tag -s v2.1 -m 'GPG version'` 
-创建GPG私钥的注释标签
-
-**删除标签**: 
-`git tag -d 标签名`
-
-**共享标签**: 
-`git push origin --tags` 
-即将标签提交到GitHub中
-
-### .gitignore文件
-
-**屏蔽文件** : 
-.gitignore文件是告诉Git哪些目录或者文件需要忽略，这些文件将不被提交;
-
-**常用场景** : 
-写完代码后会执行变异调试等操作，使用 .gitignore 文件将这些编译后的文件屏蔽，这些文件不需要Git工具进行管理
-
-**.gitignore位置** : 
-项目根目录下
-
-
-
-**过滤模式** : 
-Git中的 .gitignore 中有两种模式，开放模式和保守模式，保守模式的优先级要高于开放模式
-
-- 开放模式 : 
-  设置哪些文件和目录被过滤，凡是在文件中列出的文件或者目录都要被过滤掉
-  - 过滤目录 : /bin/ 就是将bin目录过滤，该文件下的所有目录和文件都不被提交
-  - 过滤某个类型文件 : *.zip *.class 就是过滤zip 和 class 后缀的文件，这些文件不被提交
-  - 过滤指定文件 : /gen/R.java，过滤该文件，该文件不被提交
-
-- 保守模式 : 
-  设置哪些文件不被过滤, 凡是列在其中的文件都要完整的提交上去
-  - 跟踪目录 : !/src，该目录下的所有文件都要被提交
-  - 跟踪某类文件 : !*.java，凡是java文件都要保留
-  - 跟踪指定文件 : !/AndroidManifest.xml，该文件需要保留，提交上去
-
-**配置原则** : 
-一般情况下采用开放模式与保守模式共同使用
-
-**eg** : 一个目录下有很多目录和文件，当我们只需要保留其中的一个文件的时候，先用开放模式不保留这些文件，然后用保守模式将这个文件留下来，保守模式的优先级要高于开放模式
 
 ## 三、报错处理
 
