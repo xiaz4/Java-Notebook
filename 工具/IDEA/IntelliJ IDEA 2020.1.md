@@ -446,7 +446,6 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 ![Maven 骨架创建 Java Web 项目](${image}/xxii-b-maven-hello-world-project-1.gif)
 
 > - 如上图 Gif 演示，根据已有的 Maven 骨架进行 Java Web 项目创建。其中需要特别注意的是，在创建项目过程中 Maven 会去外网中央仓库中下载对应的依赖或是组件，这个过程根据自身网络环境决定其快慢。如果出现无法下载的情况请自备 VPN 或者通过修改 Maven 配置文件 `settings.xml` 切换国内的中央仓库。
-> - 由于我已经试过多次了，所以 Gif 演示中我可以快速创建好，但是你那边不一定是这种情况的。
 
 #### 启动 Java Web 项目
 
@@ -496,15 +495,14 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 ### 版本控制Git/Svn （默认配置）
 
-https://github.com/asheofhistorys/IntelliJ-IDEA-Tutorial/blob/master/vcs-introduce.md
+具体步骤：顶部工具栏 File ->Settings -> Version Control -> Git（快捷键 Ctrl + Alt + S 打开设置）
 
-具体步骤：顶部工具栏 File ->Other Settings -> Default Settings -> Version Control -> Git
+使用说明：Git是在Version Control选项里
+`Path to Git executable`就是我们的本地Git安装路径中bin目录下的git.exe，选择好路径后点击Test按钮，如果正确安装且路径正确，那么会弹出如下对话框，表示配置成功
 
-使用说明： IDEA默认集成了对Git/Svn的支持 直接设置执行程序，右边Test提示成功即可。
+![GIT](IntelliJ IDEA 2020.1.image/image-20200830005715780.png)
 
-问题反馈：有部分小伙伴反馈说IDEA无法找到svn.exe，解决方法：重装SVN，配置项重新选择command line client tools 即可。
-
-![img](${image}/8069210-9bbaa622cf3daeed.png)
+![GIT2](IntelliJ IDEA 2020.1.image/image-20200830005808984.png)
 
 > PS: IDEA内置的Git插件灰常好用，尤其是解决冲突性的代码。另外Git客户端推荐SourceTree。
 

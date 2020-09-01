@@ -74,26 +74,24 @@ mvn package -Dmaven.test.skip=true ：表示打包时忽略掉test目录，不�
 
 ## Maven下载安装
 
-1. 下载地址：http://maven.apache.org/download.cgi，下载最新的xxx-bin.zip文件，在win上解压到： F:\Tools\DevelopTool\maven
+1. 下载地址：`http://maven.apache.org/download.cgi` ，下载最新的xxx-bin.zip文件，在win上解压到： F:\Tools\DevelopTool\maven
 2. **进行解压缩**。进行解压缩，例如解压到如下目录(**解压目录最好不要有中文**)
 3. **Maven环境变量**：系统变量：MAVEN_HOME = F:\Tools\DevelopTool\maven
-4. **环境变量Path**，将%MAVEN_HOME%\bin加入Path中，一定要注意要用分号；与其他值隔开，如下图所示：用户变量：path = %MAVEN_HOME%\bin;
-5. 验证Maven安装是否成功?打开cmd窗，**输入"mvn –v"命令** 查看Maven的相关信息。能够出现信息就说明Maven的安装已经成功了。
+4. **环境变量Path**，将`%MAVEN_HOME%\bin`加入Path中，一定要注意要用分号；与其他值隔开，如下图所示：用户变量：`path = %MAVEN_HOME%\bin;`
+5. 验证Maven安装是否成功?打开cmd窗，`mvn –v`查看Maven的相关信息。能够出现信息就说明Maven的安装已经成功了。
 6. 设置MAVEN_OPTS环境变量(可选配置)。由于Maven命令实际上是执行了Java命令，所以可以通过JAVA命令参数的方式来设置**MAVEN运行参数**。MAVEN_OPTS环境变量正是用于此用途
    MAVEN_OPTS=-Xms128m -Xmx512m，分别设置JVM的最小和最大内存。　　 
 
 ### 修改Maven仓库存储位置
 
-　　从Maven中心仓库下载到本地的jar包的默认存在”${user.home}/.m2/repository”中，${user.home}表示当前登录系统的用户目录。Jar包存放在这个位置不太好，我们希望能够自己定义下载下来的jar包的存放位置，因此我们可以**自己设置下载到本地时的jar包的存放目录。**
+从Maven中心仓库下载到本地的jar包的默认存在”${user.home}/.m2/repository”中，${user.home}表示当前登录系统的用户目录。Jar包存放在这个位置不太好，我们希望能够自己定义下载下来的jar包的存放位置，因此我们可以**自己设置下载到本地时的jar包的存放目录。**
 
 - 　　在自己选的目录下创建一个“repository”文件夹
 
 - 　　找到F:\Tools\DevelopTool\maven \conf\settings.xml文件，编辑setting.xml文件，加上下面的代码
 
-  　
-
 ```xml
-<localRepository>F:\Tools\DevelopTool\maven \repository</localRepository>
+<localRepository>F:\Tools\DevelopTool\maven\repository</localRepository>
 <!-配置阿里云镜像（因为要访问国外服务器，会很慢）->
 <mirror>
  <id>alimaven</id>
