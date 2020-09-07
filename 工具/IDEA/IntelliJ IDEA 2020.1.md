@@ -1,3 +1,5 @@
+
+
 ## IntelliJ IDEA
 
 IntelliJ IDEA 介绍
@@ -36,6 +38,11 @@ IntelliJ IDEA 介绍
 
 上面特性只是 IntelliJ IDEA 的冰山一角，而且这个还不是 IntelliJ IDEA 最重要的地方，IntelliJ IDEA 最重要的特性就是人性化、智能，后面学习你会慢慢接触到。
 
+**IDEA配置文件位置**
+
+> idea启动后会在c盘当前用户下生成一个 C:\Users\Crystal.IntelliJIdea2019.3 文件夹，这个文件夹里面有两个子文件夹 config 和 system。删除这两个文件夹，idea在启动时候会重新配置。
+>
+
 
 
 **在IDEA当中，Project和 Module是作为两个不同的概念，对项目结构是具有重大意义。**
@@ -71,9 +78,9 @@ IntelliJ IDEA 的缓存和索引主要是用来加快文件查询，从而加快
 
 如果你遇到了因为索引、缓存坏了以至于项目打不开，那也建议你可以直接删除 `system` 目录，一般这样都可以很好地解决你的问题。
 
-### IDEA 必备小技能
+### IDEA 必备设置
 
-### 主题
+#### 主题
 
 IntelliJ IDEA 修改主题的地方，可以通过打开左上角的File -> Setting。在 Windows 系统上 IntelliJ IDEA 默认提供的主题有四套：`Darcula`、`IntelliJ`、`Windows`、`Alloy. IDEA Theme`。除了 `Darcula` 是黑色主题，其他三套都是以白色为背景的。
 
@@ -82,7 +89,7 @@ IntelliJ IDEA 修改主题的地方，可以通过打开左上角的File -> Sett
 ![文件编码修改](${image}/x-d-encoding-setting-1.jpg)
 
 > - 上图标注 1 所示，IDE 的编码默认是 `UTF-8`，`Project Encoding` 虽然默认是 `GBK`，但是一般我都建议修改为 `UTF-8`。
-> - 上图标注 2 所示，IntelliJ IDEA 可以对 `Properties` 文件进行专门的编码设置，一般也建议改为 `UTF-8`，其中有一个重点就是属性 `Transparent native-to-ascii conversion`，
+> - 上图标注 2 所示，IntelliJ IDEA 可以对 `Properties` 文件进行专门的编码设置，一般也建议改为 `UTF-8`，其中有一个重点就是属性 `Transparent native-to-ascii conversion`
 > - 上图标注 3 所示，对于 `Properties` 文件，重要属性 `Transparent native-to-ascii conversion` 主要用于转换 `ascii`，一般都要勾选，不然 `Properties` 文件中的注释显示的都不会是中文。
 > - 上图标注 4 所示，IntelliJ IDEA 除了支持对整个 Project 设置编码之外，还支持对目录、文件进行编码设置。如果你要对目录进行编码设置的话，可能会出现需要 `Convert` 编码的弹出操作选择，**强烈建议** 在转换之前做好文件备份，不然可能出现转换过程变成乱码，无法还原。
 
@@ -90,24 +97,34 @@ IntelliJ IDEA 修改主题的地方，可以通过打开左上角的File -> Sett
 
 **例如 \*.idea;\*.iml** 
 
-File | Settings | File Types | 在末尾加上 *.idea;*.iml
+File | Settings | File Types | 在末尾加上.idea;.iml；`
+
+![image-20200902225707607](IntelliJ IDEA 2020.1.image/image-20200902225707607.png)
 
 #### 取消大小写敏感
 
 具体步骤：
 
-File | Settings | Editor | General | Code Completion Case | Sensitive Completion = None
+File | Settings | Editor | General | Code Completion Match case 勾去掉
 
 取消大小敏感，在编写代码的时候，代码的自动提示将更加全面和丰富。
 
+![image-20200902225331945](IntelliJ IDEA 2020.1.image/image-20200902225331945.png)
+
 #### 自动导包
 
-![常用设置](${image}/xxvi-a-settings-introduce-3.jpg)
+![image-20200903225545926](IntelliJ IDEA 2020.1.image/image-20200903225545926.png)
 
 如上图标注 1 和 2 所示，默认 IntelliJ IDEA 是没有开启自动 import 包的功能。
 
-- 勾选标注 1 选项，IntelliJ IDEA 将在我们书写代码的时候自动帮我们优化导入的包，比如自动去掉一些没有用到的包。
-- 勾选标注 2 选项，IntelliJ IDEA 将在我们书写代码的时候自动帮我们导入需要用到的包。但是对于那些同名的包，还是需要手动 `Alt + Enter` 进行导入的，IntelliJ IDEA 目前还无法智能到替我们做判断。
+- 勾选`Optimize imports on fly`选项，IntelliJ IDEA 将在我们书写代码的时候自动帮我们优化导入的包，比如自动去掉一些没有用到的包。
+- 勾选`Add unambiguous imports on the fly`选项，IntelliJ IDEA 将在我们书写代码的时候自动帮我们导入需要用到的包。但是对于那些同名的包，还是需要手动 `Alt + Enter` 进行导入的，IntelliJ IDEA 目前还无法智能到替我们做判断。
+- Insert imports on paste:复制代码的时候，对于导入的包是否需要进行询问的一个选项。
+       ASK(有需要导入的包名时会弹提示框，问你要不要导入)
+       NONE(有需要导入的包名时不会弹提示框，也不会自动导入)
+       ALL(有需要导入的包名时会自动导入，不会弹提示框)
+  Show import popup:当输入的类的声明没被导入时，会弹出一个选择的对话框
+  Exclude from Import and Completion:这个其实就是你自定义import,可以不用关注，一般来说你是用不上
 
 #### 注释风格
 
@@ -115,7 +132,23 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 - 如上图 Gif 所示，默认 IntelliJ IDEA 对于 Java 代码的单行注释是把注释的斜杠放在行数的最开头，我个人觉得这样的单行注释非常丑，整个代码风格很难看，所以一般会设置为单行注释的两个斜杠跟随在代码的头部。
 
-### 生成 serialVersionUID
+#### 收起注释，让源码阅读更为清爽！
+
+File -> Settings -> Editor -> General -> Code Folding -> Documentation comments 勾选。
+
+![image-20200902225949159](IntelliJ IDEA 2020.1.image/image-20200902225949159.png)
+
+#### 快速打开/关闭所有文档注释
+
+右键->Folding->Expand All/Collapse All
+
+#### 快速文档注释
+
+把光标停在类名或者方法名上，然后`Alt + Enter`，出现几个选项，选择`Add Javadoc`就OK了
+
+![image-20200903224441398](IntelliJ IDEA 2020.1.image/image-20200903224441398.png)
+
+#### 生成 serialVersionUID
 
 ![常用设置](${image}/xxvi-a-settings-introduce-42.jpg)![常用设置](${image}/xxvi-a-settings-introduce-43.jpg)
 
@@ -139,13 +172,131 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 #### 自动编译（Runtime）
 
-具体步骤： 敲击 Ctrl + Shift + Alt + / 然后双击Shift搜索进入Registry ，找到compiler.automake.allow.when.app.running ，然后勾选上。
+具体步骤： 敲击 `Ctrl + Shift + Alt + /` 然后双击Shift搜索进入`Registry` ，找到`compiler.automake.allow.when.app.running` ，然后勾选上(运行期间自动编译设置)
 
 ![img](${image}/8069210-0734034dd7995cf4.png)
 
 ![img](${image}/8069210-3a4d633c2c0496f5.png)
 
-## **必备的快捷键**
+#### 左侧项目显示类所有方法
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710183150446-408166528.png)
+
+#### 内存使用量展示
+
+file->setting->appearance & behaivier -> show memory indicator -> Appearance
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710184308132-1861107183.png)
+
+#### 悬浮提示
+
+File-->Settings-->Editor-->General-->show quick documenttion on mouse move 勾选
+
+有时候在看代码的时候，不清楚一个类具体是干什么的，就会点进去看这个类的注释，但是强大的IDEA是支持不用点进去就可以看到注释的以及类的相关信息的。但是需要手动打开
+
+![image-20200903230650746](IntelliJ IDEA 2020.1.image/image-20200903230650746.png)
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710185429384-2120057972.gif)
+
+#### Ctrl+鼠标滚轴修改字体大小
+
+File-->Settings-->Editor-->General-->change font size(Zoom) with Ctrl+Mouse Wheel 勾选
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710185642036-143206239.png)
+
+#### 代码水平或垂直显示
+
+选中类，右键
+
+![这里写图片描述](IntelliJ IDEA 2020.1.image/20180718163350224)
+
+#### 显示多行Tabs
+
+File-->Settings-->Editor-->General-->Editor tabs
+
+1.去掉 show tabls in one row
+
+2.tab limits 增加为20个。
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710190013082-102734055.png)
+
+#### 显示行号，显示svn/git最近提交人
+
+在编辑区直接操作，能看到每一行代码的最近一次修改人，以及提交记录信息。这样每行代码都有记录。能很快定位到谁动过代码，然后找到指定的人来解决问题。
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190710190536113-551065403.gif)
+
+#### 查看文件的本地历史记录
+
+鼠标选中文件，然后右键，在弹出的列表中选择Local History然后就可以看到文件的本地修改记录，即使没有版本控制工具也可以看到这些记录。 
+
+#### 全局JDK配置
+
+![image-20200905152151508](IntelliJ IDEA 2020.1.image/image-20200905152151508.png)
+
+File ->Other Settings -> Project Structure for New projects-> Project  -> SDKs -> JDK
+
+![image-20200905145350003](IntelliJ IDEA 2020.1.image/image-20200905145350003.png)
+
+#### 关闭Intellij IDEA自动更新
+
+File->Settings->Appearance & Behavior->System Settings->Updates下取消Automatically check updates for勾选 
+
+![image-20200905145529096](IntelliJ IDEA 2020.1.image/image-20200905145529096.png)
+
+#### 方法未引用检查去掉
+
+Setting-->editor-->inspections-->unused declaration-->methods 去掉
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190715165254042-2112023497.png)
+
+#### 设置IDEA自动提示补全代码
+
+在IDEA中，默认的代码自动提示不够智能，现在配置成更加智能的方式。
+
+File-Settings-Editor-General-Code Completion中
+
+![这里写图片描述](IntelliJ IDEA 2020.1.image/20171221170930320)
+
+#### 方法未引用检查去掉
+
+Setting-->editor-->inspections-->unused declaration-->methods 去掉
+
+![img](IntelliJ IDEA 2020.1.image/398358-20190715165254042-2112023497.png)
+
+#### 新建文件时候自动生成文件头部信息
+
+![这里写图片描述](IntelliJ IDEA 2020.1.image/2018071816224070)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 二、必备的快捷键
 
 ### Ctrl
 
@@ -510,9 +661,7 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 配置Tomcat方法： File -> Settings -> Deployment -> Application Servers -> Tomcat Server 
 
-![img](${image}/8069210-4d628299a415e63d.png)
-
-
+![img](IntelliJ IDEA 2020.1.image/8069210-4d628299a415e63d.png)
 
 #### 准备工作
 
@@ -523,7 +672,7 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 - 添加 Remote Server，如下图
 
-  ![本地 Tomcat 配置](${image}/remote-debugging-1.jpg)
+  ![本地 Tomcat 配置](IntelliJ IDEA 2020.1.image/remote-debugging-1.jpg)
 - 复制 Remote Server 自动生成的 JVM 参数，等下有用，如下图，比如我的是：`-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005`
 - 如下图，在 Host 添加服务器的 IP 地址：192.168.92.128。
   
@@ -585,19 +734,20 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 ### Debug 常用快捷键
 
-| Win 快捷键        | Mac 快捷键           | 介绍                                                         |
-| ----------------- | -------------------- | ------------------------------------------------------------ |
-| F7                | F7                   | 进入下一步，如果当前行断点是一个方法，则进入当前方法体内，如果该方法体还有方法，则不会进入该内嵌的方法中 `必备` |
-| F8                | F8                   | 进入下一步，如果当前行断点是一个方法，则不进入当前方法体内 `必备` |
-| F9                | Command + Option + R | 恢复程序运行，但是如果该断点下面代码还有断点则停在下一个断点上 `必备` |
-| Alt + F8          | Option + F8          | 选中对象，弹出可输入计算表达式调试框，查看该输入内容的调试结果 `必备` |
-| Ctrl + F8         | Command + F8         | 设置光标当前行为断点，如果当前已经是断点则去掉断点           |
-| Shift + F7        | Shift + F7           | 智能步入。断点所在行上有多个方法调用，会弹出进入哪个方法     |
-| Shift + F8        | Shift + F8           | 跳出，表现出来的效果跟 `F9` 一样                             |
-| Ctrl + Shift + F8 | Command + Shift + F8 | 指定断点进入条件                                             |
-| Alt + Shift + F7  | Option + Shift + F7  | 进入下一步，如果当前行断点是一个方法，则进入当前方法体内，如果方法体还有方法，则会进入该内嵌的方法中，依此循环进入 |
-| Alt + Shift + F8  | Option + Shift + F8  | 返回上一步                                                   |
-| Drop Frame        | Drop Frame           | 这个不是一个快捷键，而是一个 Debug 面板上的按钮。该按钮可以用来退回到当前停住的断点的上一层方法上，可以让过掉的断点重新来过 |
+| Win 快捷键        | 介绍                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| F7                | 进入下一步，如果当前行断点是一个方法，则进入当前方法体内，如果该方法体还有方法，则不会进入该内嵌的方法中 `必备` |
+| F8                | 进入下一步，如果当前行断点是一个方法，则不进入当前方法体内 `必备` |
+| F9                | 恢复程序运行，但是如果该断点下面代码还有断点则停在下一个断点上 `必备` |
+| Alt + F8          | 选中对象，弹出可输入计算表达式调试框，查看该输入内容的调试结果 `必备` |
+| Ctrl + F8         | 设置光标当前行为断点，如果当前已经是断点则去掉断点           |
+| Shift + F7        | 智能步入。断点所在行上有多个方法调用，会弹出进入哪个方法     |
+| Shift + F8        | 跳出，表现出来的效果跟 `F9` 一样                             |
+| Ctrl + Shift + F8 | 指定断点进入条件                                             |
+| Atl+F9            | Run To Cursor；运行到光标处                                  |
+| Alt + Shift + F7  | 进入下一步，如果当前行断点是一个方法，则进入当前方法体内，如果方法体还有方法，则会进入该内嵌的方法中，依此循环进入 |
+| Alt + Shift + F8  | 返回上一步                                                   |
+| Drop Frame        | 这个不是一个快捷键，而是一个 Debug 面板上的按钮。该按钮可以用来退回到当前停住的断点的上一层方法上，可以让过掉的断点重新来过 |
 
 - 有时候我们可以这样粗鲁地认为 Debug 的使用就是等同于这几个快捷键的使用，所以上面的 `必备` 快捷键是我们必须牢记的，这些也是开发很常用的。
 
@@ -610,6 +760,14 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 > > - 选中对象后，使用快捷键 `Alt + F8`。
 > > - 选中对象后，拖动对象到 `Watches`。
 > > - 选中对象后，鼠标悬停在对象上 2 秒左右。
+> > - `alter + click`，按住alter，然后点击想看的变量 `必备`
+> > - **注意：`Watchs`中的表达式作用的优先级高于代码中的优先级**
+
+![debug模式下改变变量的值](IntelliJ IDEA 2020.1.image/2018042116340421.png)
+
+> `debug`模式下，设置`断点`后，上图的变量`a`原始值为`11`，在 `Watchs`中点击绿色的加“`+`”号，输入表达式`a=22`，向下执行，可以发现`a`的值变为了`22`。
+>
+> 我要改变`a`的值，那么在variables窗口中，右键sendFrequency，点击【Set Value】或按F2，弹出的输入框中输入值，再按回车即可
 
 ![Debug 特殊技能使用](${image}/xxiii-b-debug-use-2.gif)
 
@@ -617,15 +775,15 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 ![xxiii-b-debug-use-3](${image}/xxiii-b-debug-use-3-1596632494298.gif)
 
-> - 如上图 Gif 所示，当我们需要过掉后面的所有断点的时候，我们不需要去掉这些断点，只需要点击左下角那个小圆点，点击小圆点之后，所有断点变成灰色，然后我们再在按快捷键 `F9` 即可过掉当前和后面所有的断点。
+> - 如上图 Gif 所示，当我们需要过掉后面的所有断点的时候，我们不需要去掉这些断点，只需要点击左下角那个小圆点（Mute Breakpoints），点击小圆点之后，所有断点变成灰色，然后我们再在按快捷键 `F9` 即可过掉当前和后面所有的断点。
 
 ![Debug 特殊技能使用](${image}/xxiii-b-debug-use-4.gif)
 
-> - 我们可以给断点设置进入的条件。如上图 Gif 所示，因为变量 temp3 不等于 200 所以该断点没有被进入直接跳过。
+> - 如上图 Gif 所示，直接在代码断点处右键，给断点设置进入的条件。。因为变量 temp3 不等于 200 所以该断点没有被进入直接跳过。
 
 ![Debug 特殊技能使用](${image}/xxiii-c-debug-use-2.jpg)
 
-> - 如上图，我们可以给断点设置更复杂的步入条件
+> - 如上图，View Breakpoints按钮。我们可以给断点设置更复杂的步入条件
 > - 红框中的 Pass count 表示跳过多少次后开始步入，比如 for 循环中，我们要查看一个变量循环 3 次后的结果就可以使用该方式。
 
 ![Debug 特殊技能使用](${image}/xxiii-c-debug-use-3.jpg)
@@ -642,7 +800,6 @@ File | Settings | Editor | General | Code Completion Case | Sensitive Completion
 
 ![Debug 特殊技能使用](${image}/xxiii-c-debug-use-1.jpg)
 
-> - 上图 IntelliJ IDEA 版本：2017.1.3
 > - 如上图左侧红框内容，可以看到当前断点线程执行的堆栈情况，最上面的为当前断点位置，下面的是断点前面执行的方法，如果需要看断点前面走过的路，可以查看该区域。并且可以用图上箭头按钮进行限制显示框架类代码的执行过程，而不是包括依赖 jar 里面的执行过程。
 > - 如上图右侧红框内容，可以用来展示单点断点位置的内存情况，对于判断内存溢出相关问题很有帮助。
 
