@@ -4,6 +4,6 @@
 #git pull origin master
 
 # 从github拉取更新
-git pull github
+#git pull github
 # 从gitee拉取更新
 git pull gitee
