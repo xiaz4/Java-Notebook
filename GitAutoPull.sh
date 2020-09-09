@@ -6,4 +6,4 @@
 # 从github拉取更新
 #git pull github
 # 从gitee拉取更新
-git pull gitee
+git pull gitee master
