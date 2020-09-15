@@ -271,7 +271,7 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
 
   **数据库会hung住**
   
-当redo日志满了，且不能进行覆盖时（原因：io_write_thread还没写脏数据），数据库会hung住，无法修改数据。
+  当redo日志满了，且不能进行覆盖时（原因：io_write_thread还没写脏数据），数据库会hung住，无法修改数据。
   解决方案：是redo日志变大或者redo日志文件增加
 
   
@@ -281,9 +281,9 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
   Innodb_flush_log_trx_commit
 
   =1，严格遵循commit，提交一次。绝对安全。
-  
+
   **=0，一秒钟刷一次，可能丢失一秒钟的数据。**
-  
+
   =2，将commit的数据放在操作系统的缓存中，一秒将操作系统内存中的数据刷入硬盘。
 
 
@@ -349,7 +349,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 4. type
 
-   对表访问方式，表示MySQL在表中找到所需行的方式，又称“访问类型”。
+   对表或索引访问方式，表示MySQL在表中找到所需行的方式，又称“访问类型”。
 
    常用的类型有： **ALL、index、range、 ref、eq_ref、const、system、NULL（从左到右，性能从差到好） **
 
@@ -420,26 +420,25 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
     该列包含MySQL解决查询的详细信息,有以下几种情况：
 
-    Using where:不用读取表中所有信息，仅通过索引就可以获取所需数据，这发生在对表的全部的请求列都是同一个索引的部分的时候，表示mysql服务器将在存储引擎检索行后再进行过滤
-
-    Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
-
-    **using index ：表示使用了索引覆盖优化**
-
-    Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
+    - Distinct:一旦MYSQL找到了与行相联合匹配的行,就不再搜索了
+- Not exists: MYSQL优化了LEFT JOIN,一旦它找到了匹配LEFT JOIN标准的行,就不再搜索了
+  
+- Using where:不用读取表中所有信息，仅通过索引就可以获取所需数据，这发生在对表的全部的请求列都是同一个索引的部分的时候，表示mysql服务器将在存储引擎检索行后再进行过滤
+    
+    - Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
+- **using index ：表示使用了索引覆盖优化**
+    - Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
 
     ```sql
     -- 测试Extra的filesort
     explain select * from emp order by name;
     ```
 
-    Using join buffer：改值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进能。
-
-    Impossible where：这个值强调了where语句会导致没有符合条件的行（通过收集统计信息不可能存在结果）。
-
-    Select tables optimized away：这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
-
-    No tables used：Query语句中使用from dual 或不含任何from子句
+    - Using join buffer：改值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进能
+- Impossible where：这个值强调了where语句会导致没有符合条件的行（通过收集统计信息不可能存在结果）。
+    
+    - Select tables optimized away：这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+- No tables used：Query语句中使用from dual 或不含任何from子句
 
 ## 数据库的索引
 
@@ -1076,19 +1075,30 @@ distinct：temperary buffer
 ### Order by
 
 每个用户连接数据库，都会分配各自的buffer空间；
-其中Sort buffer：256k，可能给64M，但是一个表可能10G，放不下。Extra：using filesort 只证明使用Sort buffer，不代表用到磁盘排序。
+其中Sort buffer：256k，可能给64M，但是一个表可能10G，放不下。Extra：using_filesort 只证明使用Sort buffer，不代表用到磁盘排序。
 
-**排序原理（归并排序、大顶堆）**：
-将表中的64M放在sort buffer中，排序后，放到磁盘中的临时表，然后再取各个临时表中最小的，放在sort buffer中排序，找出最小的。
+**全字段排序原理（归并排序、大顶堆）**
+将表中的64M放在sort buffer中，排序后，放到磁盘中的12 份临时表，然后再取各个临时表中最小的，放在sort buffer中排序，找出最小的。
+如果要排序的数据量小于 sort_buffer_size，排序就在内存中完成。但如果排序数据量太大，内存放不下，则不得不利用磁盘临时文件辅助排序。
 
-**小改进**：
-利用排序字段上加索引的方法；查询的列只能是排序的字段，要不然就要回表，会可能不走索引，直接全表扫描。
-Select pop from cityex orader by pop desc；extra：using index，因为已有序
-Select name,pop from cityex orader by pop desc ; extra：using filesort 
-只要索引、主键中没有的列出现在select中，就用sort buffer，所以用联合索引。可以走using index了
-**Where过滤条件**中有不是主键或索引的列，又要走sort buffer。可以用联合索引，countrycode放在最左侧。就可以走index。
 
-排序也有最左原则，一张表最多4到5个索引
+
+**rowid排序原理**
+
+> max_length_for_sort_data，是 MySQL 中专门控制用于排序的行数据的长度的一个参数。它的意思是，如果单行的长度超过这个值，MySQL 就认为单行太大，要换一个算法-索引排序(sort_mode中显示)，只有要排序的列。
+> 利用排序字段上加索引的方法；查询的列只能是排序的字段，要不然就要回表，会可能不走索引，直接全表扫描。
+
+```sql
+--extra：using index，因为已有序
+Select pop from cityex order by pop desc
+--extra：using filesort 
+Select name,pop from cityex order by pop desc ;
+
+--只要索引、主键中没有的列出现在select中，就用sort buffer，所以用联合索引。可以走using index
+--覆盖索引是指，索引上的信息足够满足查询请求，不需要再回到主键索引上去取数据。
+
+--当存在Where过滤条件，不是主键或索引的列，又要走sort buffer。用联合索引，过滤条件放在最左侧（最左原则）
+```
 
 
 
@@ -1096,7 +1106,7 @@ Select name,pop from cityex orader by pop desc ; extra：using filesort
 
 | 全局锁                                              | 表锁                                                         | 行锁                                                         |
 | --------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Flash tables with read lock(FTWRL)<BR/>场景：做备份 | 表级锁有两种：表锁和元数据<BR/>锁。读锁，写锁(排它锁)<br/>元数据锁：增删改查，加减索引的时候，任何sql语句都会加MDL锁（元数据锁）<br/>增删改查加的是MDL（读锁），对表结构做变更是MDL（写锁）。读锁互相兼容。写锁要独占。 | 使所有sql一起提交，在开始加一个begin；<br/>Mysql默认的是可重复读：特点，事务开始的时候，读的什么样，事务结束还是什么样。 |
+| Flash tables with read lock(FTWRL)<BR/>场景：做备份 | 表级锁有两种：表锁和元数据锁（MDL锁）<BR/>锁。读锁（lock tables 表名 read），写锁(lock tables 表名 write，排它锁)<br/>元数据锁：增删改查，加减索引的时候，任何sql语句都会加MDL锁（自动，元数据锁）<br/>增删改查加的是MDL（读锁），对表结构做变更是MDL（写锁）。读锁互相兼容。写锁要独占。 | 使所有sql一起提交，在开始加一个begin；<br/>Mysql默认的是可重复读：特点，事务开始的时候，读的什么样，事务结束还是什么样。 |
 
 **元数据锁**
 
@@ -1119,6 +1129,8 @@ Select name,pop from cityex orader by pop desc ; extra：using filesort
 
 ## 主从复制用途
 
+<img src="mysql.image/image-20200915094510342.png" alt="image-20200915094510342" style="zoom:50%;" />
+
 **主从架构**：
 一主多从。所有的写走主库。
 一主三从：第一个从库：读写分离，第二个从库备份，第三个什么也不做，用于切换。
@@ -1138,6 +1150,8 @@ Sync_binlog=N，大于2的任意值，表示n此提交刷一次盘。
 
 数据库垮掉后，从库数据不全。5.6以后，推出了半同步复制，从库确认提交，主库才确认数据。
 
+<img src="mysql.image/image-20200915094612167.png" alt="image-20200915094612167" style="zoom:50%;" />
+
 Commit：redo写了，binlog写了，从库写了。
 
 主从复制用途：数据分布（异机或异地）、负载均衡、备份、高可用性和故障切换、升级测试
@@ -1148,9 +1162,15 @@ Commit：redo写了，binlog写了，从库写了。
 
 ## 常用架构、分布式
 
-MHA架构：主从架构，自动切换的功能。基于主从。主从状态记录，当主库挂了，选择日志和主库最接近的从库，推举为主库。
+<img src="mysql.image/image-20200915092548310.png" alt="image-20200915092548310" style="zoom:67%;" />
 
-LVS+keepalived：Keppalived功能：检测心跳，切换vip，单点写
+MHA架构：主从架构（MHA Manager（管理节点）和MHA Node（数据节点）），自动切换的功能。基于主从。主从状态记录，当主库挂了，选择日志和主库最接近的从库，推举为主库。
+
+<img src="mysql.image/image-20200915093750309.png" alt="image-20200915093750309" style="zoom: 67%;" />
+
+LVS+keepalived：LVS提供负载均衡；Keppalived功能：检测心跳，切换vip，单点写
+
+![image-20200915093723100](mysql.image/image-20200915093723100.png)
 
 PXC：基于galera的库。三个mysql节点，都支持同时读写，多点写入。事务相互传送，节点都写完后才成功。基于数控据库的分布式。
 分布式数据库为乐观锁                分布式数据库缺点：  1、乐观锁定  2、无法即时读写
@@ -1159,7 +1179,7 @@ MGR：Mysql自己的MGR。基于中间件的分布式。Mycat（一台服务器�
 
 分布式数据库：跨分片不能做，查询修改要锁定谋一分片。
 
-事务不要在多个节点上执行	  																				
+事务不要在多个节点上执行	   																				
 
 **DBLE  mycat  分布式数据：  查询和修改尽量在同一个分片中进行  维护事务原子性**
 
