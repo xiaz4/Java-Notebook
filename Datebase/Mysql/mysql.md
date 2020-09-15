@@ -424,7 +424,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 - Not exists: MYSQL优化了LEFT JOIN,一旦它找到了匹配LEFT JOIN标准的行,就不再搜索了
   
 - Using where:不用读取表中所有信息，仅通过索引就可以获取所需数据，这发生在对表的全部的请求列都是同一个索引的部分的时候，表示mysql服务器将在存储引擎检索行后再进行过滤
-    
+  
     - Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
 - **using index ：表示使用了索引覆盖优化**
     - Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
@@ -436,7 +436,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
     - Using join buffer：改值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进能
 - Impossible where：这个值强调了where语句会导致没有符合条件的行（通过收集统计信息不可能存在结果）。
-    
+  
     - Select tables optimized away：这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
 - No tables used：Query语句中使用from dual 或不含任何from子句
 
