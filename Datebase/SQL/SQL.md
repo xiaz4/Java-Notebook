@@ -1626,7 +1626,7 @@ Select * into outfile ‘文件地址’ from xxxx
 
 ```sql
 Select * into outfile ‘c:/amp/one’
-Fields terminated by ‘，’ enclosed by ‘x’//字段包裹符
+Fields terminated by ‘,’ enclosed by ‘x’//字段包裹符
 Lines terminated by ‘/n’ starting by ‘start:’//记录开始的名字
 From xxxx
 ```
@@ -1719,7 +1719,7 @@ ISNULL()、NVL()、IFNULL() 和 COALESCE()函数
 我们使用如下 SELECT 语句：
 
 ```sql
-SELECT ProductName，UnitPrice*(UnitsInStock+UnitsOnOrder) FROM Products;
+SELECT ProductName,UnitPrice*(UnitsInStock+UnitsOnOrder) FROM Products;
 ```
 
 在上面的例子中，如果有 "UnitsOnOrder" 值是 NULL，那么结果是 NULL。
@@ -1729,13 +1729,13 @@ SELECT ProductName，UnitPrice*(UnitsInStock+UnitsOnOrder) FROM Products;
 **IFNULL() 函数**
 
 ```sql
-SELECT ProductName，UnitPrice*(UnitsInStock+IFNULL(UnitsOnOrder，0)) FROM Products;
+SELECT ProductName,UnitPrice*(UnitsInStock+IFNULL(UnitsOnOrder，0)) FROM Products;
 ```
 
 **COALESCE() 函数**
 
 ```sql
-SELECT ProductName，UnitPrice*(UnitsInStock+COALESCE(UnitsOnOrder，0))FROM Products;
+SELECT ProductName,UnitPrice*(UnitsInStock+COALESCE(UnitsOnOrder，0))FROM Products;
 ```
 
 ## 2.11 子查询
@@ -1889,7 +1889,7 @@ CREATE [OR REPLACE] [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
 create view my_v1 as select * from my_student;
 create view my_v2 as select * from my_class;
 --视图：多表
-create view my_v3 as select s.*，c.c_name，c.room from my_student as s left join my_class as c on s.c_id = c.id;
+create view my_v3 as select s.*,c.c_name，c.room from my_student as s left join my_class as c on s.c_id = c.id;
 ```
 
 ![image-20200722085238356](SQL.image/image-20200722085238356.png)
@@ -2211,7 +2211,7 @@ GROUP BY Customer
   **我们使用如下 SQL 语句：**
 
   ```sql
-  SELECT Customer，SUM(OrderPrice) FROM Orders GROUP BY Customer HAVING SUM(OrderPrice)<2000;
+  SELECT Customer,SUM(OrderPrice) FROM Orders GROUP BY Customer HAVING SUM(OrderPrice)<2000;
   ```
 
   **结果集类似：**
@@ -2377,9 +2377,9 @@ ON { table|view }
 这里我用了三种方法来实现行转列第一种：静态行转列
 
 ```sql
-select UserName 姓名，
-sum(case Subject when '语文' then Source else 0 end) 语文，
-sum(case Subject when '数学' then Source else 0 end) 数学，
+select UserName 姓名,
+sum(case Subject when '语文' then Source else 0 end) 语文,
+sum(case Subject when '数学' then Source else 0 end) 数学,
 sum(case Subject when '英语' then Source else 0 end) 英语 
 from TestTable 
 group by UserName
@@ -2398,9 +2398,9 @@ pivot(sum(Source) for Subject in(语文，数学，英语)
 
 ```sql
 alter proc pro_test
-@userImages varchar(200)，
-@Subject varchar(20)，
-@Subject1 varchar(200)，
+@userImages varchar(200),
+@Subject varchar(20),
+@Subject1 varchar(200),
 @TableName varchar(50)
 as
  declare @sql varchar(max)='select * from (select '+@userImages+' from'+@TableName+') tab
@@ -2408,9 +2408,9 @@ pivot
 (sum('+@Subject+') for Subject('+@Subject1+')) pvt'
 exec (@sql)
 go
-exec pro_test 'UserName，Subject，Source'，
-'TestTable'，
-'Subject'，
+exec pro_test 'UserName，Subject，Source',
+'TestTable',
+'Subject',
 '语文，数学，英语'
 ```
 
@@ -2434,13 +2434,13 @@ SELECT * FROM employees WHERE hire_date = (SELECT DISTINCT hire_date FROM employ
 
 - update TBL set Nmbr = case when Nmbr =0 then Nmbr +2 else Nmbr + 3 end;
 
-- SELECT testtable2.* ， ISNULL(department，'黑人')
+- SELECT testtable2.* , ISNULL(department,'黑人')
 
   isnull 标示department为空的时候，显示后面的值，也就是department为空的时候，显示黑人
 
 - 编写一个sql ，查询出第10大的数据
 
-  SELECT DISTINCT Salary FROM Employee ORDER BY Salary DESC LIMIT 9，1;
+  SELECT DISTINCT Salary FROM Employee ORDER BY Salary DESC LIMIT 9,1;
 
 - 获取前一百奇数的用户(odd user_id)value
 
@@ -2469,6 +2469,6 @@ SELECT * FROM employees WHERE hire_date = (SELECT DISTINCT hire_date FROM employ
   使用联结 join，条件是左表的分数小于等于右表的分数时，对右表的分数进行计数（即计算有几个不重复的分数大于自己，计算结果就是rank），然后根据id分组后，再根据分数降序排列
 
   ```sql
-  SELECT S1.score，COUNT( DISTINCT S2.score ) Rank FROM Scores S1 INNER JOIN Scores S2 ON S1.score <= S2.score GROUP BY S1.id， S1.score ORDER BY S1.score DESC;
-  select Score， (select count(distinct Score) from Scores s2 where s2.Score >= s1.Score) Rank from Scores s1 order by Score DE;
+  SELECT S1.score,COUNT( DISTINCT S2.score ) Rank FROM Scores S1 INNER JOIN Scores S2 ON S1.score <= S2.score GROUP BY S1.id,S1.score ORDER BY S1.score DESC;
+  select Score, (select count(distinct Score) from Scores s2 where s2.Score >= s1.Score) Rank from Scores s1 order by Score DE;
   ```

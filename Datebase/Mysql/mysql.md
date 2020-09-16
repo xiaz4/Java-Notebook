@@ -8,11 +8,9 @@
 
 **query cache module**
 
-执行过后，缓存进cache内存，再次查询走缓存。
+执行过后，缓存进cache内存，再次查询走缓存。query cache在MySql8.0以后被删除
 
-query cache在MySql8.0以后被删除
 
-ACID：一致性undo保证的，持久性：日志系统
 
 **mysql分两层**
 
@@ -30,21 +28,13 @@ mysql（主从架构）、分布式文件服务器->分布式缓存数据库redi
 
 **各个组件说明**
 
-1. 支持接口
+1. 支持接口：与其他编程语言中sql语句交互
 
-   与其他编程语言中sql语句交互
+2. 管理服务工具：系统管理和控制
 
-2. 管理服务工具
+3. 连接池：管理缓冲用户连接
 
-   系统管理和控制
-
-3. 连接池
-
-   管理缓冲用户连接
-
-4. sql接口
-
-   接受用户的sql命令，并且返回用户需要查询的结果
+4. sql接口：接受用户的sql命令，并且返回用户需要查询的结果
 
 5. 解析器
 
@@ -54,17 +44,12 @@ mysql（主从架构）、分布式文件服务器->分布式缓存数据库redi
 
    - 如果在分解过程中发生错误，那么就说明这个sql语句是不合理的，语句将不会继续执行下去。
 
-6. 优化（查询优化器）
+6. 优化（查询优化器）：sql语句查询之前会使用查询优化器进行优化，并从中选出最优的方案取执行。
 
-   sql语句查询之前会使用查询优化器进行优化，并从中选出最优的方案取执行。
+7. 缓存和缓冲池：如果缓存中有查询结果，查询语句则直接取查询缓存中取结果。
 
-7. 缓存和缓冲池
+8. 存储引擎：**存储引擎是mysql中具体与文件交互的系统**。在mysql中存储引擎是**插件式**的，它根据一个公共的文件访问层**抽象接口**来定制一种文件访问机制。（这种访问机制就叫存储引擎，即多态）
 
-   如果缓存中有查询结果，查询语句则直接取查询缓存中取结果。
-
-8. 存储引擎
-
-   **存储引擎是mysql中具体与文件交互的系统**。在mysql中存储引擎是**插件式**的，它根据一个公共的文件访问层**抽象接口**来定制一种文件访问机制。（这种访问机制就叫存储引擎，即多态）
 
 ## sql语句执行过程
 
@@ -121,15 +106,13 @@ MySQL将缓存存放在一个引用表中，通过一个哈希值引用，这个
 
 预处理器则根据一些MySQL规则进行进一步检查解析书是否合法，例如检查数据表和数据列是否存在，还会解析名字和别名，看看它们是否有歧义。
 
-session：idel session ；active  session 125个就很危险
-
 **主要包括两部分：词法解析（对表和条件的判断）和语法解析（语句正确与否）**
 
 ### 查询优化器 
 
 查询优化器会将解析树转化成执行计划。一条查询可以有多种执行方法，最后都是返回相同结果。优化器的作用就是找到这其中最好的执行计划。
 
-生成执行计划的过程会消耗较多的时间，特别是存在许多可选的执行计划时，如果在一条SQL语句执行的过程中将该语句对应的最终执行计划进行缓存，当相似的语句再次被输入服务器，就可以直接使用已缓存的执行计划，从而跳过SQL语句生成执行计划的整个过程，进而可以提高语句的执行速度。
+生成执行计划的过程会消耗较多的时间，特别是存在许多可选的执行计划时，如果在一条SQL语句执行的过程中将该语句对应的最终执行计划进行缓存，当相似的语句再次被输入服务器，就可以直接使用已缓存的执行计划，从而跳过SQL语句生成执行计划的整个过程，进而可以提高语句的执行速度。**Mysql没有shared_pool缓存执行计划，但是提供了query cache缓存sql执行结果和文本，如果在生命周期内完全相同的sql再次运行，则连sql解析都免去了；**
 
 <img src="mysql.image/3657124489-5b7037b660ace.png" style="zoom:80%;" />
 
@@ -156,17 +139,43 @@ session：idel session ；active  session 125个就很危险
 
 MySQL将结果集返回给客户端是一个增量、逐步返回的过程。在查询生成第一条结果时，MySQL就可以开始向客户端逐步返回结果集了。
 
+## 全局缓存+线程缓存
+
+### 全局缓存
+
+- key_buffer_size：决定索引处理的速度，尤其是索引读的速度。默认值是16M。该参数只对**MyISAM**表起作用。
+- innodb_buffer_pool_size: InnoDB使用该参数指定大小的内存来缓冲数据和索引，这个是Innodb引擎中影响性能最大的参数。
+  - 写缓冲(change buffer)：它是一种应用在**非唯一普通索引页**(non-unique secondary index page)不在缓冲池中，对页进行了写操作，并不会立刻将磁盘页加载到缓冲池，而仅仅记录缓冲变更(buffer changes)，等未来数据被读取时，再将数据合并(merge)恢复到缓冲池中的技术。写缓冲的目的是降低写操作的磁盘IO，提升数据库性能。如果索引设置了唯一(unique)属性，在进行修改操作时，InnoDB必须进行唯一性检查。也就是说，索引页即使不在缓冲池，磁盘上的页读取无法避免(否则怎么校验是否唯一？)，此时就应该直接把相应的页放入缓冲池再进行修改。
+- innodb_additional_mem_pool_size: 指定InnoDB用来存储数据字典和其他内部数据结构的内存池大小。缺省值是8M。通常不用太大，够用即可，应该与表结构的复杂度有关系。如果不够用，mysql会在错误日志中写入一条警告信息。
+- innodb_log_buffer_size: 指定Innodb用来存储日志数据的缓存大小，相当于oracle中的log buffer
+- query_cache_size： 是mysql的查询缓存大小。大多数情况下禁用该参数。
+
+ 
+
+### 线程缓存
+
+> 每个连接到mysql服务器的线程都需要有自己的缓存。大概需要立刻分配256K，甚至在线程空闲时，他们使用默认的线程堆栈，网络缓存等。事务开始之后，则需要增加更多的空间。运行较小的查询可能仅给指定的线程增加少量的内存消耗，然而如果对数据表做复杂的操作例如扫描、排序或者需要临时表，则需要分配read_buffer_size、sort_buffer_size、read_rnd_buffer_size、tmp_table_size大小的内存空间。不过他们只是在需要的时候才分配，并且在那些操作完成之后便释放。
+
+- read_buffer_size: 是mysql读入缓冲区大小。对表进行顺序扫描的请求将分配一个读入缓冲区，mysql会为它分配一段内存缓冲区。该参数用来控制读入缓冲区的大小。如果对表的顺序扫描请求非常的频繁，并且认为频繁扫描进行的太慢，可以通过增加该变量值以及内存缓冲区大小来提高性能。
+- sort_buffer_size： 是mysql执行排序使用的缓冲大小。如果想要增加order by的速度，首先要看是否可以让mysql使用索引而不是额外的排序。如果不能，可以尝试增加sort_buffer_size变量的大小。
+- read_rnd_buffer_size：MRR；是mysql的随机读缓冲区大小。当按任意顺序读取行时，例如按照排序顺序，将分配一个随机读缓存区。在我理解，像全表扫描的话都顺序读，对于走索引的查询，应该都是随机读。在oracle里面有个index fast full scan的方式，这种属于顺序读。
+- tmp_table_size：是mysql的临时表缓冲大小。所有联合在一个dml指令内完成，并且大多数联合甚至可以不用临时表即可完成。大多数临时表是基于内存的heap表。具有大的记录长度的临时表或者包含blob列的表存储在硬盘上。
+- thread_stack：主要用来存放每一个线程自身的标识信息，如线程id，线程运行时基本信息等等，我们可以通过thread_stack参数来设置为每一个线程栈分配多大的内存。
+- join_buffer_size：应用程序经常会出现一些**两表或多表join的操作需求**，mysql在完成某些join需求的时候，为了减少参与join的被驱动表的读取次数以提高性能，需要使用的join buffer来协助完成join操作。当join buffer太小，mysql不会将该buffer存入磁盘文件，而是先将join buffer中的结果集与需要join的表进行join操作，然后清空join buffer中的数据，继续将剩余的结果集写入此buffer中，如此往复。这势必会造成被驱动表需要被多次读取，成倍增加IO访问，降低效率。
+- binlog_cache_size： 在事务过程中容纳二进制日志sql语句的缓存大小。二进制日志缓存是服务器支持事务存储引擎并且服务器启用了二进制日志的前提下为每个客户端分配的内存，注意，每个client都可以分配设置大小的binlog cache空间。
+
 ## 如何从引擎层取数据(InnoDB)
 
 ### InnoDB buffer pool中的链表
 
 ![image-20200909091838289](mysql.image/image-20200909091838289.png)
 
-FREE链表：空闲内存页（块）列表，需要装载（缓存）磁盘上的数据页的时候，首先从此列表取内存块。
+- FREE链表：空闲内存页（块）列表，需要装载（缓存）磁盘上的数据页的时候，首先从此列表取内存块。
 
-LRU链表：缓存了所有读入内存的数据页，包含三类。1）未修改的页面，可以从该列表中摘除，然后移到Free链表中。2）已修改还未刷新到磁盘的页面。3）已修改且已经刷新到磁盘的页面，可并为第一类。
+- LRU链表：缓存了所有读入内存的数据页，包含三类。1）未修改的页面，可以从该列表中摘除，然后移到Free链表中。2）已修改还未刷新到磁盘的页面。3）已修改且已经刷新到磁盘的页面，可并为第一类。
 
-FLUSH链表：记录了在LRU链表中被修改但还没有刷新到磁盘的数据页列表，就是所谓的脏页列表。FLUSH链表记录脏页是通过指针指向了LRU链表。
+- FLUSH链表：记录了在LRU链表中被修改但还没有刷新到磁盘的数据页列表，就是所谓的脏页列表。FLUSH链表记录脏页是通过指针指向了LRU链表。
+
 
 ### 数据读写操作
 
@@ -176,7 +185,7 @@ FLUSH链表：记录了在LRU链表中被修改但还没有刷新到磁盘的数
 
 **数据写的基本操作：**
 
-修改首先发生在buffer pool中（脏页）；修改的细节被记录在log buffer中；修改被写入到表空间中；修改写入表空间的操作是不定时的。当buffer pool中的数据被写入表空间后，称为clean。这个讲脏页写入到磁盘的时机称为checkpoint；写入log buffer后，通知应用操作成功。记录会被写入到磁盘中的redo log，当commit或者log buffer达到1/2满。此时可以认为事务已经被持久化，无论是否已经写入磁盘。
+修改首先发生在buffer pool中（脏页）；修改的细节被记录在log buffer中，修改被写入到表空间中；修改写入表空间的操作是不定时的。当buffer pool中的数据被写入表空间后，称为clean。这个讲脏页写入到磁盘的时机称为checkpoint；写入log buffer后，通知应用操作成功。记录会被写入到磁盘中的`redo log`，当commit或者log buffer达到1/2满。此时可以认为事务已经被持久化，无论是否已经写入磁盘。
 
 处理：mysql内的线程io_write_thread：写脏数据到磁盘，和cpu数量有关，一般是16/32，8个cpu=1个io_write_thread。
 
@@ -199,7 +208,7 @@ FLUSH链表：记录了在LRU链表中被修改但还没有刷新到磁盘的数
 ### InnoDB buffer pool
 
 mysql中存在内存池（内存中申请）
-InnoDB buffer pool（整个系统的70%），以**LRU**链表存放数据，mysql数据库不是按行读取，而是按页读取，每页16k----一个page（页）。
+InnoDB buffer pool（整个系统的70%），以LRU链表存放数据，mysql数据库不是按行读取，而是按页读取，每页16k----一个page（页）。
 
 innodb_page_size：用来调整用于缓存data和index的内存大小。5.7加入32KB和64KB设置（注意）
 
@@ -217,7 +226,7 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
 
 2. **防止SQL语句将热点数据刷出LRU链表，造成再次访问磁盘**
 
-   防止热点数据被刷出，设置参数innodb_old_blocks_time,表示页读取到mid位置后需要等待多久才会被加入到LRU链表的热端。
+   防止热点数据被刷出，设置参数innodb_old_blocks_time，表示页读取到mid位置后需要等待多久才会被加入到LRU链表的热端。
 
    - 如果距离上一次访问的时间小于这个时间，那就不把这个缓存页放到young区域，这个过程称之为page not made young 
    - 如果距离上一次访问的时间大于这个时间，那就把这个缓存页放到young区域，这个过程称之为page made young 。这样就可以降低在全表扫描时需要对页读取多次而对缓冲池的污染
@@ -235,7 +244,7 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
 
   每个用户会有自己的内存：sort buffer 、join buffer、MRR等。
 
-  一个用户建立连接后，会生成私有内存空间，sort buffer和join buffer
+  一个用户建立连接后，会生成私有内存空间，sort buffer 和 join buffer
 
   如果sql语句有排序数据取出至innodb buffer之后，要在sort buffer中进行排序。
 
@@ -280,11 +289,9 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
 
   Innodb_flush_log_trx_commit
 
-  =1，严格遵循commit，提交一次。绝对安全。
-
-  **=0，一秒钟刷一次，可能丢失一秒钟的数据。**
-
-  =2，将commit的数据放在操作系统的缓存中，一秒将操作系统内存中的数据刷入硬盘。
+  - =1，严格遵循commit，提交一次。绝对安全。
+- **=0，一秒钟刷一次，可能丢失一秒钟的数据。**
+  - =2，将commit的数据放在操作系统的缓存中，一秒将操作系统内存中的数据刷入硬盘。
 
 
 
@@ -349,23 +356,17 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 4. type
 
-   对表或索引访问方式，表示MySQL在表中找到所需行的方式，又称“访问类型”。
+   **对表或索引访问方式**，表示MySQL在表中找到所需行的方式，又称“访问类型”。
 
    常用的类型有： **ALL、index、range、 ref、eq_ref、const、system、NULL（从左到右，性能从差到好） **
 
-   ALL：Full Table Scan， MySQL将遍历全表以找到匹配的行
-
-   index: Full Index Scan，index与ALL区别为index类型只遍历索引树
-
-   range:只检索给定范围的行，使用一个索引来选择行
-
-   ref: 表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值
-
-   eq_ref: 类似ref，区别就在使用的索引是唯一索引，对于每个索引键值，表中只有一条记录匹配，简单来说，就是多表连接中使用primary key或者 unique key作为关联条件
-
-   const、system: 当MySQL对查询某部分进行优化，并转换为一个常量时，使用这些类型访问。如将主键置于where列表中，MySQL就能将该查询转换为一个常量，system是const类型的特例，当查询的表只有一行的情况下，使用system
-
-   NULL: MySQL在优化过程中分解语句，执行时甚至不用访问表或索引，例如从一个索引列里选取最小值可以通过单独索引查找完成。
+   - ALL：Full Table Scan， MySQL将遍历全表以找到匹配的行
+- index: Full Index Scan，index与ALL区别为index类型只遍历索引树
+   - range:只检索给定范围的行，使用一个索引来选择行
+- ref: 表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值
+   - eq_ref: 类似ref，区别就在使用的索引是唯一索引，对于每个索引键值，表中只有一条记录匹配，简单来说，就是多表连接中使用primary key或者 unique key作为关联条件
+- const、system: 当MySQL对查询某部分进行优化，并转换为一个常量时，使用这些类型访问。如将主键置于where列表中，MySQL就能将该查询转换为一个常量，system是const类型的特例，当查询的表只有一行的情况下，使用system
+   - NULL: MySQL在优化过程中分解语句，执行时甚至不用访问表或索引，例如从一个索引列里选取最小值可以通过单独索引查找完成。
 
  
 
@@ -384,7 +385,6 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
    如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX。
 
-   In(“sd”,”fg”)，分为两条执行判断。
 
  
 
@@ -394,7 +394,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
    不损失精确性的情况下，长度越短越好 
 
-   用了复合索引，但没用全，只显示用的部分长度。
+   用了复合索引，但没用全，只显示用的部分长度。最左前缀原则
 
  
 
@@ -418,26 +418,30 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 11. Extra
 
-    该列包含MySQL解决查询的详细信息,有以下几种情况：
+    该列包含MySQL解决查询的详细信息，有以下几种情况：
 
-    - Distinct:一旦MYSQL找到了与行相联合匹配的行,就不再搜索了
-- Not exists: MYSQL优化了LEFT JOIN,一旦它找到了匹配LEFT JOIN标准的行,就不再搜索了
+- Distinct：一旦MYSQL找到了与行相联合匹配的行，就不再搜索了
+
+- Not exists：MYSQL优化了LEFT JOIN，一旦它找到了匹配LEFT JOIN标准的行，就不再搜索了
   
-- Using where:不用读取表中所有信息，仅通过索引就可以获取所需数据，这发生在对表的全部的请求列都是同一个索引的部分的时候，表示mysql服务器将在存储引擎检索行后再进行过滤
+- Using where：不用读取表中所有信息，仅**通过索引**就可以获取所需数据，这发生在对表的全部的请求列都是同一个索引的部分的时候，表示mysql服务器将在存储引擎检索行后再进行过滤
   
-    - Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
+- Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
+
 - **using index ：表示使用了索引覆盖优化**
-    - Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
+- Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
 
     ```sql
     -- 测试Extra的filesort
     explain select * from emp order by name;
     ```
 
-    - Using join buffer：改值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进能
+- Using join buffer：改值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进能
+
 - Impossible where：这个值强调了where语句会导致没有符合条件的行（通过收集统计信息不可能存在结果）。
   
-    - Select tables optimized away：这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+- Select tables optimized away：这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+
 - No tables used：Query语句中使用from dual 或不含任何from子句
 
 ## 数据库的索引
@@ -445,7 +449,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 ### 8.1 为什么需要索引?
 
 当数据保存在**磁盘类存储介质上**时，它是作为**数据块存放**。这些数据块是被当作一个整体来访问的，这样可以保证操作的原子性。**硬盘数据块存储结构类似于链表，**都包含数据部分，以及一个指向下一个节点（或数据块）的**指针，**不需要连续存储。
-记录集只能在某个关键字段上进行排序，所以如果需要在一个无序字段上进行搜索，就要执行一个线性搜索（Linear Search）的过程，**平均需要访问N/2的数据块，**N是表所占据的数据块数目。如果这个字段是一个非主键字段（也就是说，不包含唯一的访问入口），那么需要在N个数据块上搜索整个表格空间。
+记录集只能在某个关键字段上进行排序，所以如果需要在一个无序字段上进行搜索，就要执行一个线性搜索（Linear Search）的过程，**平均需要访问N/2的数据块**，N是表所占据的数据块数目。如果这个字段是一个非主键字段（也就是说，不包含唯一的访问入口），那么需要在N个数据块上搜索整个表格空间。
 
 
 但是对于一个有序字段，可以运用二分查找（Binary Search），这样只要访问log2 (N)的数据块。这就是为什么性能能得到本质上的提高。
@@ -458,11 +462,11 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 **数据库索引的存在，可能导致相关字段删除的效率降低；**
 
-### 8.2 什么是索引?
+### 8.2 什么是索引
 
 #### 索引
 
-> **索引是对记录集的多个字段进行排序的方法。**在一张表中为一个字段创建一个索引，将创建另外一个数据结构，**包含字段数值以及指向相关记录的指针，**然后对这个**索引结构**进行排序，允许在该数据上进行二分法排序。 
+> **索引是对记录集的多个字段进行排序的方法。**在一张表中为一个字段创建一个索引，将创建另外一个数据结构，包含字段数值以及指向相关记录的指针，然后对这个索引结构进行排序，允许在该数据上进行二分法排序。 
 
 这就是为什么一个表只能有一个主键， 一个表只能有一个**「聚集索引」ID**，因为主键的作用就是把「表」的数据格式转换成「索引（平衡树）」的格式放置。
 
@@ -485,20 +489,29 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 
 
-**减少回表查询**
+##### MRR(Multi-Range Read)
+
+> 当一个表很大，不能存储到存储引擎的缓存的时候，使用二级索引做范围扫描会引起大量磁盘随机读。MRR的存在就是为了优化这些随机读。mysql开始只扫描跟行相关的索引和收集key，然后把这些key排序，最后根据排好序的primary key来从基础表获取数据。 MRR的目的是，降低随机的磁盘IO，替换成相对更有顺序的IO。
+>
+> 当使用MRR的时候 explain 出现：Using MRR标志；
+> 存储引擎使用read_rnd_buffer_size 的值来确定MRR时的buffer大小，自动不开启。
+
+
+
+**特点：**
+
+1. 随机IO转换成顺序IO
+2. 批量处理请求覆盖索引
+3. 覆盖索引时，不会用MRR
+
+
+
+##### 减少回表查询
 
 **索引覆盖**：只需要在一棵索引树上就能获取SQL所需的所有列数据，无需回表，速度更快。
-**常见的方法是**：select中包含，将被查询的字段，同时建立到联合索引里去（次级联合索引中指向主键，所以也包含主键索引）。
+**常见的方法是**：select中包含将被查询的字段，同时建立到联合索引里去（次级联合索引中指向主键，所以也包含主键索引）。
 
 
-
-**辅助索引范围扫描的一种优化方式**
-
-**MRR：multi range read**
-
-辅助索引范围查询数据先缓存，再从主键索引中查找
-
-read_rnd_buffer_size MRR的大小，自动不开启
 
 **显示优化器各种优化算法开关**
 
@@ -512,9 +525,7 @@ show variable 'optimizer_switch';
 set optimizer_switch = "mrr_cost_based= off";
 ```
 
-****
 
-MRR是对二级索引查找的优化，会分配一个mrr_read_rnd_buffer。
 
 ### 8.3 索引类型
 
@@ -523,7 +534,7 @@ MRR是对二级索引查找的优化，会分配一个mrr_read_rnd_buffer。
 1. 普通索引：  normal
 
    ```sql
-   CREATE INDEX 索引的名字 ON tablename (列名1，列名2,...);
+   CREATE INDEX 索引的名字 ON tablename (列名1,列名2,...);
    ```
 
    可能存在相同的值
@@ -542,7 +553,7 @@ MRR是对二级索引查找的优化，会分配一个mrr_read_rnd_buffer。
 
    **唯一索引好，还是普通索引好？**
 
-   **查询**：普通索引比唯一索引多做了一次内存搜索和判断(不知道后面值是否一致)，性能相差微乎其微！
+   **查询**：唯一索引比普通索引多做了一次内存搜索和判断(不知道后面值是否一致)，性能相差微乎其微！
 
    **更新**：**change buffer（innodb_buffer_pool中子集 **），将操作统一输入到磁盘的时候（修改的值不马上用），会将每个表的操作集合，一起操作。唯一索引：修改时要判断唯一性；普通索引：修改时不需要读取记录。
 
@@ -554,7 +565,7 @@ MRR是对二级索引查找的优化，会分配一个mrr_read_rnd_buffer。
 
    **建普通索引优于建立唯一索引。**
 
-   redo log 主要节省的是随机写磁盘的 IO 消耗（转成顺序写），而 change buffer 主要节省的则是随机读磁盘的 IO 消耗。
+   log buffer主要节省的是随机写磁盘的 IO 消耗（转成顺序写），而 change buffer 主要节省的则是随机读磁盘的 IO 消耗。
 
    
 
@@ -751,7 +762,7 @@ B+树的**关键字全部存放在叶子节点中（卫星数据，即行数据�
 
 - b+树为了维护索引有序性，在插入新值的时候需要做必要的维护。
 
-- 数据页满，可能产生**页分裂**
+- 插入不自增的数据，页满，可能产生**页分裂和数据移动**
 
 - 某些开发规范，建表语句里一定要有自增主键。
 
@@ -764,7 +775,6 @@ B+树的**关键字全部存放在叶子节点中（卫星数据，即行数据�
   显然，主键长度越小，普通索引的叶子节点就越小，普通索引占用的空间也就越小
 
   从性能和存储空间方面考量，自增主键往往是更合理的选择
-
 
 
 
@@ -783,7 +793,7 @@ B+树的**关键字全部存放在叶子节点中（卫星数据，即行数据�
 **局限性**
 
 - 散列冲突
-- **Hash索引仅仅能满足"="和"<=>"等值查询。如果键值不是唯一的，就需要先找到该键所在位置，然后再根据链表往后扫描，直到找到相应的数据**
+- Hash索引仅仅能满足"="和"<=>"等值查询。如果键值不是唯一的，就需要先找到该键所在位置，然后再根据链表往后扫描，直到找到相应的数据
 - 如果是范围查询检索，这时候哈希索引就毫无用武之地了
 - 哈希索引也没办法利用索引完成排序
 
@@ -796,7 +806,7 @@ B+树的**关键字全部存放在叶子节点中（卫星数据，即行数据�
 MyISAM引擎使用B+Tree作为索引结构，**叶结点的data域存放的是数据记录的地址**。下面是MyISAM索引的原理图：
 
 
- ![clip_image061](mysql.image/clip_image061.gif)
+![](mysql.image/clip_image061.gif)
 
 
 这里设表一共有三列，假设我们以Col1为主键，则上图是一个MyISAM表的主索引（Primary key）示意图。可以看出**MyISAM的索引文件仅仅保存数据记录的地址**。在MyISAM中，**主索引和辅助索引（Secondary key）在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key可以重复**。如果我们在Col2上建立一个辅助索引。
@@ -807,9 +817,10 @@ MyISAM的索引方式也叫做“非聚集”的，之所以这么称呼是为�
 
 **注意：**
 
-主索引和辅助索引都是B+树，叶子节点都存储的是数据记录的地址，索引文件和数据文件是分离的，主索引和辅助索引都不会影响数据文件。
+- 主索引和辅助索引都是B+树，叶子节点都存储的是数据记录的地址，索引文件和数据文件是分离的，主索引和辅助索引都不会影响数据文件。
 
-范围查询时，
+- 范围查询时，叶子节点
+
 
 #### InnoDB索引实现
 
@@ -819,7 +830,7 @@ MyISAM的索引方式也叫做“非聚集”的，之所以这么称呼是为�
 
 ![clip_image063](mysql.image/clip_image063.gif)
 
-可以看到**叶结点包含了完整的数据记录。**这种索引叫做聚集索引。因为InnoDB的数据文件本身要按主键聚集，所以InnoDB要求表必须有主键（MyISAM可以没有）。如果没有主键，MySQL自动为InnoDB表生成一个隐含字段作为主键，这个字段长度为**6个字节，类型为长整形。**
+可以看到**叶结点包含了完整的数据记录。**这种索引叫做聚集索引。因为InnoDB的数据文件本身要按主键聚集，所以InnoDB要求表必须有主键（MyISAM可以没有）。**如果没有主键，MySQL自动为InnoDB表生成一个隐含字段作为主键，这个字段长度为6个字节，类型为long**。
 
  
 
@@ -863,8 +874,8 @@ MyISAM的索引方式也叫做“非聚集”的，之所以这么称呼是为�
 
 通配符和正则表达式都将作为sql中where字句的内容
 
-前者通过like和not like操作符。
-后者通过使用regexp和not regexp或者rlike和not rlike操作符。**
+- 通配符通过like和not like操作符。
+- 正则表达式通过使用regexp和not regexp或者rlike和not rlike操作符。
 
 ### **通配符**
 
@@ -886,7 +897,7 @@ mysql中匹配模式不区分大小写
 
 **注意：**
 
-**%不能匹配NULL；有一些字段首尾可能会出现空格，为了避免影响匹配结果，可以是同LTrim和RTrim函数去掉首尾的空格。**
+**%不能匹配NULL；有一些字段首尾可能会出现空格，为了避免影响匹配结果，可以是同LTrim和RTrim函数去掉首尾的空格**
 
 
 
@@ -924,7 +935,7 @@ mysql中匹配模式不区分大小写
 
 **![img](mysql.image/1383122-20191124182558783-60421582.jpg)**
 
-## **mysql基本函数**
+## mysql基本函数
 
 | **MySQL常用函数大全讲解**                                    |                                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -932,8 +943,8 @@ mysql中匹配模式不区分大小写
 | ASCII(str)                                                   | 返回字符串str的最左面字符的ASCII代码值                       |
 | CONCAT(str1,str2,...)                                        | 返回来自于参数连结的字符串。如果任何参数是NULL，返回NULL。可以有超过2个的参数。一个数字参数被变换为等价的字符串形式 |
 | LOCATE(substr,str)                                           | 返回子串substr在字符串str第一个出现的位置，如果substr不是在str里面，返回0。select LOCATE('bar', 'foobarbar')；结果：4 |
-| char_length()                                                | 按字符个数长度（中英文字符一致）；<br/>在UTF-8编码中：一个中文等于三个字节，中文标点占三个字节。一个英文字符等于一个字节，英文标点占一个字节。<br/>Unicode编码：一个英文等于两个字节，一个中文（含繁体）等于两个字节。中文标点，英文标点占两个字节。 |
-| length()                                                     | 返回字符串str的长度，**多少个字节**。LENGTH("开心工作")；latin1=1个字节、unicode=2个字节、UTF8=3个字节；**char_set_client** |
+| char_length()                                                | **按字符个数长度**（中英文字符一致）；<br/>在UTF-8编码中：一个中文等于三个字节，中文标点占三个字节。一个英文字符等于一个字节，英文标点占一个字节。<br/>Unicode编码：一个英文等于两个字节，一个中文（含繁体）等于两个字节。中文标点，英文标点占两个字节。 |
+| length()                                                     | 返回字符串str的长度，**多少个字节**。LENGTH("开心工作")=12；LENGTH("text")=4；latin1=1个字节、unicode=2个字节、UTF8=3个字节； |
 | INSTR(str,substr)                                            | 返回子串substr在字符串str中的第一个出现的位置，从1开始数     |
 | INSERT(str,pos,len,newstr)                                   | 返回字符串str，在位置pos起始的子串且len个字符长的子串由字符串newstr代替 |
 | SUBSTRING(str,pos)                                           | 从字符串str的起始位置pos返回一个子串                         |
@@ -944,7 +955,7 @@ mysql中匹配模式不区分大小写
 | LPAD('MySQL',9,'.')<br/>RPAD(str,len,'占位符')               | 从左选9个，超过以.补全<br/>从右选，超过以.补全               |
 |                                                              |                                                              |
 | **二、时间用date and Time 函数**                             |                                                              |
-| now()<br/>curdate()                                          | 返回当前时间<br/>返回房前日期                                |
+| now()<br/>curdate()                                          | 返回当前时间<br/>返回当前日期                                |
 | DAYOFWEEK(date)<br/>DAYOFMONTH(date)                         | 返回日期date的星期索引(1=星期天，2=星期一, …7=星期六)，select DAYOFWEEK('1998-02-03')。<br/>返回date的月份中的日期，在1到31范围内。 |
 | WEEKDAY(date)                                                | 返回date的星期索引(0=星期一，1=星期二, ……6= 星期天)。        |
 | DATE_ADD(date,INTERVAL expr type) <br/>DATE_SUB(date,INTERVAL expr type) | 进行日期增加的操作，可以精确到秒；<br/>进行日期减少的操作，可以精确到秒 |
@@ -968,8 +979,8 @@ mysql中匹配模式不区分大小写
 | VERSION()                                                    | 函数返回数据库的版本号                                       |
 | CONNECTION_ID()                                              | 函数返回服务器的连接数，也就是到现在为止MySQL服务的连接次数  |
 | DATABASE()和SCHEMA()                                         | 返回当前数据库名                                             |
-| USER()、SYSTEM_USER()、SESSION_USER()                        | 返回真正的当前用户，用户放在mysql中                          |
-| current_user()                                               | 对应**数据字典**中的用户；在root权限下的mysql的user表中，存储着用户 |
+| USER()、SYSTEM_USER()、SESSION_USER()                        | 显示当前登陆的用户名与它对应的host                           |
+| current_user()                                               | 显示当前登陆用户对应user表（数据字典）中的用户；mysql.user表里对应的账号 |
 | CHARSET(str)                                                 | 函数返回字符串str的字符集，一般情况这个字符集就是系统的默认字符集 |
 | COLLATION(str)                                               | 函数返回字符串str的字符排列方式。utf8_general_ci             |
 | LAST_INSERT_ID()                                             | 函数返回最后生成的AUTO_INCREMENT值                           |
@@ -978,13 +989,7 @@ mysql中匹配模式不区分大小写
 | PASSWORD(str)<br/>MD5(str)                                   | 函数可以对字符串str进行加密                                  |
 | ENCODE(str,pswd_str)<br/>DECODE(crypt_str,pswd_str)          | 函数可以使用字符串pswd_str来加密字符串str。加密的结果是一个二进制数，必须使用BLOB类型的字段来保存它<br/>使用字符串pswd_str来为crypt_str解密 |
 
-## **表连接的优化问题**
-
-1. 公司开发规范不让使用join操作，为什么？
-
-2. 大小不同的两个表，哪个表做驱动表比较好？
-
-****
+## 表连接的优化问题
 
 **查看表连接的执行计划**
 
@@ -1023,10 +1028,6 @@ for each row in t1 matching range {
 - Index Nested-Loop Join算法
 
   Mysql让非驱动表走索引。首选
-  
-  可以用到：BKA（batched key access），默认关：大量的辅助索引顺序和主键索引顺序不一致，用BKA，借鉴MRR，所以打开BKA要打开两个参数一个为BKA参数，一个为MRR参数
-  
-  using batched key access说明使用了bka，**使用的是join buffer**
 
 #### Block Nested-Loop Join算法
 
@@ -1040,7 +1041,7 @@ for each row in t1 matching range {
 (S * C)/join_buffer_size + 1
 ```
 
-以上面的t1,t2,t3三表连接为例，S表示t1，t2组合在缓存中的大小，C是这些组合，在buffer中扫描寻找的数量，**整个式子就是t3被扫描的次数**。
+以上面的t1,t2,t3三表连接为例，S表示t1，t2组合在缓存中的大小，C是这些组合，在buffer中扫描寻找的数量，整个式子就是t3被扫描的次数。
 
 可以看出，join_buffer_size越大，扫描的次数越小，但是这个优化有上限，当join_buffer_size大到能够缓存所有之前的行组合，那么就是性能最好的时候，再增大这个值，也就没有优化效果了。
 
@@ -1052,34 +1053,42 @@ BNL优化，从扫描行数来讲，没有优化，用Join_buffer。高并发的
 show variables like 'join_buffer_size'
 ```
 
-------
+#### BKA（batched key access）
+
+> 默认关。当使用索引访问第二个join对象的时候，跟BNL类似，BKA使用一个join buffer来收集第一个操作对象生成的相关列值。BKA构建好key后，批量传给引擎层做索引查找。key是通过MRR接口提交给引擎的，这样，MRR使得查询更有效率。BKA使用join buffer size来确定buffer的大小，buffer越大，访问右侧表就越顺序。
+>
+> using batched key access说明使用了bka，使用的是join buffer
+
+大量的辅助索引顺序和主键索引顺序不一致，用BKA，借鉴MRR，所以打开BKA要打开两个参数一个为BKA参数，一个为MRR参数
 
 **BKA -> index NLJ > BNL > Simple NLJ**
 
 ## 分组和排序
 
-### Group by
+### Group by（temperary buffer）
 
-Union：并集去重 temperary buffer，从第一个表中取出一个放在buffer中有主键（并的列）的表，此buffer存不下，则往磁盘存放。
+Union：并集去重 `temperary buffer`，从第一个表中取出一个放在buffer中有主键（并的列）的表，此buffer存不下，则往磁盘存放。
 Union all：合并不去重。
 
 show variable like 'temper%'：Temp_table_size（临时表空间）
 
-Group by要用到temperary buffer，group by耗的是cpu（temperary buffer中比较顺序和数目）。
+Group by 要用到 temperary buffer，group by耗的是cpu（temperary buffer中比较顺序和数目）。
+
 用Group by时，会帮着排序。用到了temperary buffer和排序的using filesort；加上排序后，性能就低。不加排序在后面加order by null。
 
 经常用group by，建个索引，字段会自动排序；但更新表，索引也要改。
 
 distinct：temperary buffer
 
-### Order by
+### Order by（Sort buffer）
 
 每个用户连接数据库，都会分配各自的buffer空间；
 其中Sort buffer：256k，可能给64M，但是一个表可能10G，放不下。Extra：using_filesort 只证明使用Sort buffer，不代表用到磁盘排序。
 
 **全字段排序原理（归并排序、大顶堆）**
-将表中的64M放在sort buffer中，排序后，放到磁盘中的12 份临时表，然后再取各个临时表中最小的，放在sort buffer中排序，找出最小的。
-如果要排序的数据量小于 sort_buffer_size，排序就在内存中完成。但如果排序数据量太大，内存放不下，则不得不利用磁盘临时文件辅助排序。
+
+> 将表中的64M放在sort buffer中，排序后，放到磁盘中的12 份临时表，然后再取各个临时表中最小的，放在sort buffer中排序，找出最小的。
+> 如果要排序的数据量小于 sort_buffer_size，排序就在内存中完成。但如果排序数据量太大，内存放不下，则不得不利用磁盘临时文件辅助排序。
 
 
 
@@ -1112,7 +1121,7 @@ Select name,pop from cityex order by pop desc ;
 
 > 任何操作都会在表上添加一个锁，即MDL锁（metadata lock，不需要显式使用，在访问一个表的时候会被自动加上）。
 >
-> 为了在并发环境下维护表元数据的数据一致性，在表上有活动事务（显式或隐式）的时候，不可以对元数据进行写入操作。因此从MySQL5.5版本开始引入了MDL锁（metadata lock），来保护表的元数据信息，**用于解决或者保证DDL操作与DML操作之间的一致性。**
+> 为了在并发环境下维护表元数据的数据一致性，在表上有活动事务（显式或隐式）的时候，不可以对元数据进行写入操作。因此从MySQL5.5版本开始引入了MDL锁（metadata lock），来保护表的元数据信息，**用于解决或者保证DDL操作与DML操作之间的一致性**。
 >
 > 元数据锁是server层的锁，表级锁，每执行一条DML、DDL语句时都会申请MDL锁，DML操作需要MDL读锁，DDL操作需要MDL写锁（MDL加锁过程是系统自动控制，无法直接干预，读读共享，读写互斥，写写互斥），申请MDL锁的操作会形成一个队列，队列中写锁获取优先级高于读锁。一旦出现写锁等待，不但当前操作会被阻塞，同时还会阻塞后续该表的所有操作。
 
@@ -1189,7 +1198,7 @@ MGR：Mysql自己的MGR。基于中间件的分布式。Mycat（一台服务器�
 
 1. 解析器：词法解析，语法解析 优化器的产物是执行计划。
 
-2. mysql不缓存执行计划（硬解析），mysql没有软解析。（现在有）
+2. mysql不缓存执行计划（硬解析），mysql没有软解析。
 
 3. mysql8.0以后query cache不用了
 
@@ -1217,7 +1226,7 @@ MGR：Mysql自己的MGR。基于中间件的分布式。Mycat（一台服务器�
 
     ------
 
-15. 统计信息(analyze table cityex)，手动收集统计信息。
+15. 统计信息(analyze table cityex)，手动收集统计信息
 
 16. 查看统计信息(show index from cityex)
 
