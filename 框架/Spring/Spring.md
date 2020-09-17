@@ -95,7 +95,7 @@ Spring 框架的核心是 Spring 容器。
 - 容器创建对象，将它们装配在一起，配置它们并管理它们的完整生命周期。
 
 - Spring 容器使用依赖注入来管理组成应用程序的组件。容器通过读取提供的配置元数据来接收对象进行实例化，配置和组装的指令。该元数据可以通过 XML，Java 注解或 Java 代码提供。
-- 我们需要进行控制反转（IoC），及上层控制下层，而不是下层控制着上层。我们用依赖注入（Dependency Injection）这种方式来实现控制反转。所谓依赖注入，就是把底层类作为参数传入上层类，**实现上层类对下层类的“控制”。**
+- 我们需要进行控制反转（IoC），及上层控制下层，而不是下层控制着上层。我们用依赖注入（Dependency Injection）这种方式来实现控制反转。所谓依赖注入，就是把底层类作为参数传入上层类，**实现上层类对下层类的“控制”**。
 
 **IoC Container好处：**
 
@@ -128,9 +128,9 @@ Spring IoC 容器的设计主要是基于以下两个接口：
 - BeanFactory
 - ApplicationContext
 
-其中 ApplicationContext 是 BeanFactory 的子接口之一，换句话说：**BeanFactory 是 Spring IoC 容器所定义的最底层接口，**而 ApplicationContext 是其最高级接口之一，并对 BeanFactory 功能做了许多的扩展，所以在绝大部分的工作场景下，都会使用 **ApplicationContext 作为 Spring IoC 容器。**
+其中 ApplicationContext 是 BeanFactory 的子接口之一，换句话说：**BeanFactory 是 Spring IoC 容器所定义的最底层接口**，而 ApplicationContext 是其最高级接口之一，并对 BeanFactory 功能做了许多的扩展，所以在绝大部分的工作场景下，都会使用 **ApplicationContext 作为 Spring IoC 容器**。
 
-#### BeanFactory
+##### BeanFactory
 
 从上图中我们可以几乎看到， BeanFactory 位于设计的最底层，它提供了 Spring IoC 最底层的设计，为此，我们先来看看该类中提供了哪些方法：
 
@@ -157,7 +157,7 @@ Spring IoC 容器的设计主要是基于以下两个接口：
 
 这就是 Spring IoC 最底层的设计，所有关于 Spring IoC 的容器将会遵守它所定义的方法。
 
-#### ApplicationContext
+##### ApplicationContext
 
 根据 ApplicationContext 的类继承关系图，可以看到 ApplicationContext 接口扩展了许许多多的接口，因此它的功能十分强大，所以在实际应用中常常会使用到的是 ApplicationContext 接口，因为 BeanFactory 的方法和功能较少，而 ApplicationContext 的方法和功能较多。
 
@@ -171,7 +171,7 @@ Spring自带了多种类型的应用上下文。下面罗列的几个是你最�
 
 认识一个重要的 ApplicationContext 的子类--**ClassPathXmlApplicationContext**。
 
-这个类采用**Jdom**对application.xml文档进行解析。
+这个类采用 **Jdom** 对application.xml文档进行解析。
 
 > 先在【src】目录下创建一个 【bean.xml】 文件：这里定义了一个 bean ，这样 Spring IoC 容器在初始化的时候就能找到它们，然后使用 ClassPathXmlApplicationContext 容器就可以将其初始化：ApplicationContext context =new ClassPathXmlApplicationContext("bean.xml");这样就会使用 Application 的实现类 ClassPathXmlApplicationContext 去**初始化 Spring IoC 容器**，然后开发者利用getBean()方法就可以通过 IoC 容器来获取资源了啦！
 
@@ -183,7 +183,7 @@ Spring自带了多种类型的应用上下文。下面罗列的几个是你最�
 
 通过**解析xml文件**或java配置，获取到beanid和class属性内容，利用反射，通过class.forName获得class对象再来**实例化对象**。
 
-**通过反射实例化对象，存入到Spring的bean容器中。**
+**通过反射实例化对象，存入到Spring的bean容器中**。
 当一个类需要另一个类时，从容器中获取到对应的bean对象，**获取类的setter方法的Method类，setter调用invoke方法执行**，注入之前拿到的bean对象。
 
 #### BEAN属性
@@ -248,17 +248,17 @@ lazy-init属性只对singleton【单例】的对象有效…..lazy-init默认为
 
 #### bean生命周期
 
-![img](Spring.image/wps9.jpg) 
+![](Spring.image/wps9.jpg)
 
  Spring上下文中的Bean也类似，如下
 
 1. Spring 容器根据配置中的 bean 定义中**实例化 bean**;
-2. 按照Spring上下文对实例化的Bean进行配置－－也就是**IOC注入；**
-3. 如果这个Bean已经实现了**BeanNameAware接口**，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中**Bean的id值；**
+2. 按照Spring上下文对实例化的Bean进行配置－－也就是**IOC注入**；
+3. 如果这个Bean已经实现了**BeanNameAware接口**，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中**Bean的id值**；
 4. 如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
 5. 如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，**传入Spring上下文**（同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法）；
 6. 如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术；
-7. 如果Bean在Spring配置文件中配置了***\*init-method属性\****会自动调用其配置的初始化方法。
+7. 如果Bean在Spring配置文件中配置了**init-method属性**会自动调用其配置的初始化方法。
 8. 如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessAfterInitialization(Object obj, String s)方法；注：以上工作完成以后就可以应用这个Bean了，那这个Bean是一个Singleton的，所以一般情况下我们调用同一个id的Bean会是在内容地址相同的实例，当然在Spring配置文件中也可以配置非Singleton，这里我们不做赘述。
 9. 当Bean不再需要时，会经过清理阶段，如果Bean实现了**DisposableBean**这个接口，会调用那个其实现的**destroy()方法；**
 10. 最后，如果这个Bean的Spring配置中配置了**destroy-method属性**，会自动调用其配置的销毁方法。
@@ -414,13 +414,15 @@ public class JuiceMaker {
 >
 > DI能够让相互协作的软件组件保持松散耦合，而面向切面编程（aspect-oriented programming，AOP）允许你把遍布应用各处的功能分离出来形成可重用的组件。
 
+
+
 **AOP实现原理**
 
 - aop底层将采用代理机制进行实现。
 - 接口 + 实现类 ：spring采用 jdk 的动态代理Proxy。
 - 实现类：spring 采用 cglib字节码增强。
 
-1. 静态AOP：在编译期，切面直接以字节码的形式编译到目标字节码文件中。AspectJ属于静态AOP，是在编译时进行增强，会在编译的时候将AOP逻辑织入到代码中，需要专有的编译器和织入器。
+1. 静态AOP：在编译期，切面直接以字节码的形式编译到目标字节码文件中。AspectJ 属于静态AOP，是在编译时进行增强，会在编译的时候将AOP逻辑织入到代码中，需要专有的编译器和织入器。
 2. 动态AOP(JDK动态代理)：在运行期，目标类加载后，**为接口动态生成代理类**，将切面植入到代理类中。
 3. 动态代码字节生成：在运行期，目标类加载后，动态构建字节码文件生成目标类的子类，将切面逻辑加入到子类中。CGLib
 
@@ -434,13 +436,13 @@ public class JuiceMaker {
 /**
  * 目标对象实现的接口
  */
-
 public interface BussinessInterface {
-  void execute();}
+  void execute();
+}
 /**
  * 目标对象实现类
  */
-public class Bussiness implements BussinessInterface{
+public class BussinessImpl implements BussinessInterface{
   @Override
   public void execute() {
     System.out.println("执行业务逻辑...");
@@ -587,11 +589,11 @@ public ProxyFactory(Object target){
 
 （6）目标对象（Target Object）： 被一个或者多个切面（aspect）所通知（advise）的对象。也有人把它叫做 被通知（adviced） 对象。 既然Spring AOP是通过运行时代理实现的，这个对象永远是一个 被代理（proxied） 对象。
 
-（7）织入（Weaving）：**指把增强应用到目标对象来创建新的代理对象的过程。Spring是在运行时完成织入。**
+（7）织入（Weaving）：**指把增强应用到目标对象来创建新的代理对象的过程。Spring是在运行时完成织入**。
 
 #### 一个例子
 
-**包租婆的核心业务**就是签合同，收房租，那么这就够了，灰色框起来的部分都是重复且边缘的事，交给中介商就好了，这就是 **AOP 的一个思想：**让关注点代码与业务代码分离！**
+包租婆的核心业务就是签合同，收房租，那么这就够了，灰色框起来的部分都是重复且边缘的事，交给中介商就好了，这就是 AOP 的一个思想：**让关注点代码与业务代码分离！**
 
 我们来实际的用代码感受一下
 
@@ -599,23 +601,14 @@ public ProxyFactory(Object target){
 
 ```java
 package pojo;
-
 import org.springframework.stereotype.Component;
-
 @Component("landlord")
-
 public class Landlord {
-
   public void service() {
-
     // 仅仅只是实现了核心的业务功能
-
     System.out.println("签合同");
-
     System.out.println("收房租");
-
   }
-
 }
 ```
 
@@ -680,7 +673,7 @@ Spring 是方法级别的 AOP 框架，我们主要也是以**某个类额某个
 
 **第二步：创建切面**
 
-选择好了连接点就可以创建切面了，我们可以把切面理解为一个拦截器，当程序运行到连接点的时候，***\*被拦截下来，\****在开头加入了初始化的方法，在结尾也加入了销毁的方法而已，在 Spring 中只要使用 @Aspect 注解一个类，那么 Spring IoC 容器就会认为这是一个切面了：
+选择好了连接点就可以创建切面了，我们可以把切面理解为一个拦截器，当程序运行到连接点的时候，**被拦截下来**，在开头加入了初始化的方法，在结尾也加入了销毁的方法而已，在 Spring 中只要使用 @Aspect 注解一个类，那么 Spring IoC 容器就会认为这是一个切面了：
 
 ```java
 package aspect;
@@ -749,7 +742,7 @@ package aspect;
 class Broker {
   //  使用 @Around 注解来同时完成前置和后置通知
   @Around("execution(* pojo.Landlord.service())")
-  public void around(***\*ProceedingJoinPoint\**** joinPoint) {
+  public void around(ProceedingJoinPoint joinPoint) {
     System.out.println("带租客看房");
     System.out.println("谈价格");
     try {

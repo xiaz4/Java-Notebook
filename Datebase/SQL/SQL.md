@@ -93,7 +93,7 @@ SHOW GRANTS FOR myuser;
 账户用 username@host 的形式定义，username@% 使用的是默认主机名。
 
 ```sql
-GRANT SELECT， INSERT ON mydatabase.* TO myuser;
+GRANT SELECT,INSERT ON mydatabase.* TO myuser;
 ```
 
 **删除权限**
@@ -112,7 +112,7 @@ GRANT 和 REVOKE 可在几个层次上控制访问权限：
 
 
 ```sql
-REVOKE SELECT， INSERT ON mydatabase.* FROM myuser;
+REVOKE SELECT,INSERT ON mydatabase.* FROM myuser;
 ```
 
 **更改密码**
@@ -188,7 +188,7 @@ create database mydb1 character set utf8 collate utf8_general_ci;
 
    mysql> show variables like "%charac%";
 
-### 1.2.1 数据备份与还原
+### 数据备份与还原
 
 > **备份**：将当前已有的数据或记录保留。原始数据面临的问题：持续改变；
 >
@@ -250,14 +250,14 @@ create database mydb1 character set utf8 collate utf8_general_ci;
 
 
 ```sql
-Select * 字段列表 into outfile ‘文件所在的路径’from 数据源; --前提：外部文件不存在。
+Select * 字段列表 into outfile ‘文件所在的路径’ from 数据源; --前提：外部文件不存在。
 ```
 
 - 高级备份：自己制定字段和行的处理方式
 
 
 ```sql
-Select  * 字段列表 into outfile  ‘文件所在的路径’fields字段处理 lines 行处理 from数据源;
+Select  * 字段列表 into outfile  ‘文件所在的路径’ fields 字段处理 lines 行处理 from 数据源;
 ```
 
 | Fields：字段处理 |                                                  |
@@ -271,7 +271,7 @@ Select  * 字段列表 into outfile  ‘文件所在的路径’fields字段处�
 - 数据还原：将一个在外部的数据重新恢复到表中（如果表结构部不存在，那么sorry）。
 
   ```sql
-  Load data infile文件所在路径 into table表名[字段列表] fields字段处理 lines行处理;  --怎么备份的怎么
+  Load data infile 文件所在路径 into table表名[字段列表] fields字段处理 lines行处理;  --怎么备份的怎么
   ```
 
 #### sql备份
@@ -316,11 +316,18 @@ Select  * 字段列表 into outfile  ‘文件所在的路径’fields字段处�
 ### 1.3.1 默认的字符集与校对
 
 ```sql
+--创建新表根据数据
 create table 表名(
-    字段1 类型，
-    字段2 类型，
+    字段1 类型,
+    字段2 类型,
      .....
 ) character set utf8 collate utf8_general_ci; 
+
+--带数据创建新表
+create table tab_new as select * from tab_old where 范围; 
+
+--新建空表，只要结构
+create table tab_new as select * from tab_old where 1=2;
 ```
 
 1. 可以通过. 语法，指明数据表所属的数据库
@@ -361,19 +368,19 @@ NOT NULL 约束**强制字段始终包含值**。这意味着，如果不向字�
 
 #### UNIQUE 约束
 
-UNIQUE 约束**唯一标识数据库表中的每条记录。**
+UNIQUE 约束**唯一标识数据库表中的每条记录**。
 
 UNIQUE 和 PRIMARY KEY 约束均为列或列集合提供了唯一性的保证。
 
 **PRIMARY KEY拥有自动定义的 UNIQUE约束。**
 
-请注意，每个表可以有多个 UNIQUE 约束，**但是每个表只能有一个PRIMARY KEY约束。**
+请注意，每个表可以有多个 UNIQUE 约束，**但是每个表只能有一个PRIMARY KEY约束**。
 
  
 
 1. 一张表往往需要多个字段具有唯一性（数据不能重复），但是一张表中只能有一个主键。唯一键可解决表中多个字段需要唯一性约束的问题。
 
-2. 唯一键的本质和主键差不多，**唯一键默认允许自动为空，而且多个为空（空字段不参与唯一性比较）。**
+2. 唯一键的本质和主键差不多，**唯一键默认允许自动为空，而且多个为空（空字段不参与唯一性比较）**。
 
 3. 增加唯一键
 
@@ -401,7 +408,17 @@ UNIQUE 和 PRIMARY KEY 约束均为列或列集合提供了唯一性的保证。
 
 #### PRIMARY KEY 约束
 
-PRIMARY KEY 约束唯一标识数据库表中的每条记录。
+> PRIMARY KEY 约束唯一标识数据库表中的每条记录。
+>
+> 遵循如下三点原则：
+>
+> 第一：有无原则：除临时表和外部表，以及流水表，日志表外，其他表都要建立主键；
+>
+> 第二：构成原则：主键不能使用含有实际语义的列，应该增加一个xx_id字段做主键，类型为number，取值来自序列sequence；
+>
+> 第三：创建原则：对于500万以上的表，请数据组参与设计实施，采用先建唯一索引再添加主键约束的方式来创建主键；
+>
+> 注：大表设计：物化视图、分区、拆成小表、并发查询。
 
 主键必须包含唯一的值，主键列不能包含 NULL 值，每个表都应该有一个主键，并且每个表只能有一个主键。
 
@@ -412,7 +429,7 @@ PRIMARY KEY 约束唯一标识数据库表中的每条记录。
 ```sql
 -- 增加主键
 create table my_pril(
-name varchar(20) not null comment '学生姓名'，
+name varchar(20) not null comment '学生姓名',
 number char(10) primary key comment '学生学号，itcast+0000'
 )charset utf8;
 ```
@@ -422,11 +439,11 @@ number char(10) primary key comment '学生学号，itcast+0000'
 ```sql
 -- 复合主键
 create table my_pri2(
-number char(10) comment'学号：itcast+0000'，
-course char(8)  comment'课程代码：3901+0000'，
+number char(10) comment'学号：itcast+0000',
+course char(8)  comment'课程代码：3901+0000',
 score tinyint unsigned default 60 comment'成绩'，
 -- 增加主键
-primary key(number，course)
+primary key(number,course)
 )charset utf8;
 ```
 
@@ -472,8 +489,8 @@ alter table my_pri3 add primary key(course);
 ```sql
 -- 使用逻辑型字段作为主键
 create table my_student(
-Id int primary key auto_increment comment'逻辑主键：自增长'，
-Number char(10) not null comment'学号'，
+Id int primary key auto_increment comment'逻辑主键：自增长',
+Number char(10) not null comment'学号',
 name varchar(10) not null
 )charset utf8
 ```
@@ -484,8 +501,8 @@ name varchar(10) not null
 
 ```sql
 insert into my_auto (name) values('邓丽君');
-insert into my_auto values(null，'baby');
-insert into my_auto values(default，'汪涵') 
+insert into my_auto values(null,'baby');
+insert into my_auto values(default,'汪涵') 
 ```
 
 ![](SQL.image/image-20200721151807212.png)
@@ -573,10 +590,10 @@ SQL CHECK Constraint on CREATE TABLE
 CREATE TABLE Persons
 (
 Id_P int NOT NULL，
-LastName varchar(255) NOT NULL，
-FirstName varchar(255)，
-Address varchar(255)，
-City varchar(255)，
+LastName varchar(255) NOT NULL,
+FirstName varchar(255),
+Address varchar(255),
+City varchar(255),
 CHECK (Id_P>0)
 )
 ```
@@ -652,9 +669,9 @@ alter table emp add constraint jfsd default 10000 for gongzi
 ```sql
 --创建外键
 create table my_foreign1(
-id int primary key auto_increment，
-name varchar(20) not null comment'学生姓名'，
-c_id int comment '班级id'，
+id int primary key auto_increment,
+name varchar(20) not null comment'学生姓名',
+c_id int comment '班级id',
 --增加外键
 foreign key(c_id) references my_class(id)
 )charset utf8;
@@ -701,7 +718,7 @@ show create table my_foreign1;
 **对字表的约束：**子表数据进行写操作（增和改）的时候，如果对应的外键字段在父表中找不到对应的匹配，那么操作会失败（约束子表数据操作）。外键有值，外键对应的表无数据则不能插入。
 
 ```java
-insert into my_foreign2 values(null，'张飞'，5);
+insert into my_foreign2 values(null,'张飞',5);
 ```
 
 ![](SQL.image/image-20200720103318579.png)
@@ -740,9 +757,9 @@ insert into my_foreign2 values(null，'张飞'，5);
    ```sql
    --创建外键：指定模式（删除置空，更新级联）
    create table my_foreign3(
-   id int primary key auto_increment，
-   name varchar(20) not null，
-   c_id int，
+   id int primary key auto_increment,
+   name varchar(20) not null,
+   c_id int,
    --增加外键
    foreign key(c_id)
    --引用表
@@ -782,40 +799,41 @@ insert into my_foreign2 values(null，'张飞'，5);
 
    drop table [if exists] tbl_name;
 
-### 1.4.2 修改表
+### 1.4.2 修改表（alter ）
 
-1. 修改表的结构语法格式:alter table 表 [add|drop|change|modify] ….;                 
+1. 修改表的结构语法格式：alter table 表 [add|drop|change|modify] ….; 
 
-​    关键字有以下几个:
-
-​        1.add----添加列操作  alter table 表名 add 列名 类型;
-
-​        alter table employee add image blob;
-
-​        2.modify--修改列的类型 alter table 表名 modify 列名 类型;
-
-​        alter table employee modify job varchar(60);
-
-​        3.drop --删除列 alter table 表名 drop **COLUMN** 列名.
-
-​		alter table employee drop COLUMN gender;
-
-​        4.change--修改列名称 alter table 表名 change 旧列名 新列名 类型;
-
-​        alter table user change name username varchar(20);
+   ```sql
+   --add--添加列操作  alter table 表名 add 新列名 类型;
+   alter table employee add image blob;
+   
+   --modify--修改列的类型 alter table 表名 modify 新的字段类型 [新的字段选项];
+   alter table employee modify job varchar(60);
+   
+   --drop --删除列 alter table 表名 drop COLUMN 列名;
+   alter table employee drop COLUMN gender;
+   
+   --change--修改列名称 alter table 表名 change 旧列名 新的字段类型 [新的字段选项];
+   alter table user change name username varchar(20);
+   ```
 
 2. 修改表的名称
 
-   rename table 旧表名 to 新表名;   
+   ```sql
+   alter  table 旧表名 rename to 新表名;   
+   alter  table employee rename  to user;
+   ```
 
-   rename table employee to user;
+   
 
 3. 修改表的字符编码集
 
-   alter table 表名 character set 字符集;
-
+   ```sql
+alter table 表名 character set 字符集;
    alter table user character set gb2312;
-
+   ```
+```
+   
    支持，跨数据库重命名，此时当前表即被剪切过去而不再存在于当前数据库中!
 
 ### 1.4.3 表记录操作
@@ -824,7 +842,7 @@ insert into my_foreign2 values(null，'张飞'，5);
 
 where原理：where是唯一一个直接从磁盘获取数据的时候就开始判断的条件。从磁盘取出一条记录，开始进行where判断，判断的结果如果成立就保存到内存；如果失败就直接放弃。
 
-```sql
+​```sql
 SELECT 列名称 FROM 表名称 WHERE 列 运算符 值
 ```
 
@@ -998,34 +1016,34 @@ SQL的执行顺序：
 可以按多个列进行排序，并且为每个列指定不同的排序方式：
 
 ```sql
-SELECT * FROM mytable ORDER BY col1 DESC， col2 ASC;
+SELECT * FROM mytable ORDER BY col1 DESC,col2 ASC;
 ```
 
 #### INSERT INTO 
 
 ```sql
-INSERT INTO 表名称 VALUES (值1， 值2，....);
-INSERT INTO Persons VALUES ('Gates'， 'Bill'， 'Xuanwumen 10'， 'Beijing');
+INSERT INTO 表名称 VALUES (值1,值2,....);
+INSERT INTO Persons VALUES ('Gates','Bill', 'Xuanwumen 10', 'Beijing');
 ```
 
 我们也可以指定所要插入数据的列：**构造符（）**
 
 ```sql
-INSERT INTO table_name (列1， 列2，...) VALUES (值1， 值2，....)
-INSERT INTO Persons (LastName， Address) VALUES ('Wilson'， 'Champs-Elysees')
+INSERT INTO table_name (列1,列2,...) VALUES (值1,值2,....)
+INSERT INTO Persons (LastName,Address) VALUES ('Wilson','Champs-Elysees')
 ```
 
 可以省略对列的指定，要求 values () 括号内，提供给了按照**列顺序**出现的所有字段的值。
 
 ```sql
 -- 或者使用set语法。
-Insert into tbl_name set field=value，…；
+Insert into tbl_name set field=value,…；
 ```
 
 可以指定在**插入的值出现主键（或唯一索引）冲突时**，更新其他非主键列的信息。
 
 ```sql
-Insert into tbl_name 值 on duplicate key update 字段=值， …;
+Insert into tbl_name 值 on duplicate key update 字段=值, …;
 -- 逻辑：插入（失败，主键冲突）--跟新
 ```
 
@@ -1090,7 +1108,7 @@ delete from employee where username='小李子';
 **支持多表删除，使用类似连接语法**。
 
 ```sql
-Delete from 需要删除数据表1，表2 using 表连接操作 条件;
+Delete from 需要删除数据表1,表2 using 表连接操作 条件;
 ```
 
 关于删除表与删除表数据区别:
@@ -1178,6 +1196,8 @@ set character_set_results = gbk;
 
 ## 2.1 数据类型
 
+![image-20200917100921478](SQL.image/image-20200917100921478.png)
+
 SQL中将数据类型分成了三大类：**数值类型**，**字符串类型**和**时间日期类型**
 
 数据类型（data_type）规定了列可容纳何种数据类型。下面的表格包含了SQL中最常用的
@@ -1185,6 +1205,8 @@ SQL中将数据类型分成了三大类：**数值类型**，**字符串类型**
 ### 2.1.1 数值类型
 
 #### 整数型
+
+![image-20200917101153294](SQL.image/image-20200917101153294.png)
 
 Tinyint 迷你整型，使用1个字节存储，表示状态最多为256种。（常用）Smallint 小整型，使用2个字节存储，表示状态最多为65536种。
 Mediuint 中整型，使用3个字节存储。
@@ -1344,7 +1366,7 @@ CREATE INDEX PersonIndex ON Person (LastName DESC) ;
 假如您希望索引不止一个列，您可以在括号中列出这些列的名称，用逗号隔开：
 
 ```sql
-CREATE INDEX PersonIndex ON Person (LastName， FirstName);
+CREATE INDEX PersonIndex ON Person (LastName,FirstName);
 ```
 
 ### 2.2.2 DROP INDEX 语句
@@ -1373,7 +1395,7 @@ ALTER TABLE table_name DROP INDEX index_name;
    限制起始位置，限制数量：limit 起始位置，长度
 
    ```sql
-   Select * from my_student 0，2 -- 从0开始，寻找两
+   Select * from my_student 0,2 -- 从0开始，寻找两
    ```
 
 2. 主要是用来实现数据的分页，为用户节省时间，提高服务器的响应效率，减少资源的浪费。
@@ -1455,10 +1477,9 @@ Sql将连接查询分成四类：内连接，外连接（不支持where连接；
 
 #### 内连接
 
-> 内连接（[inner]  join）:从左表中取出每一条记录，去右表中与所有的记录进行匹配，**匹配必须是某个条件在左表与右表中相同，**最终才会保留结果，否则不保留。
+> 内连接（[inner]  join）:从左表中取出每一条记录，去右表中与所有的记录进行匹配，**匹配必须是某个条件在左表与右表中相同**，最终才会保留结果，否则不保留。
 >
-
-基本语法：左表 [inner]  join 右表 on 左表.字段=右表.字段
+> 基本语法：左表 [inner]  join 右表 on 左表.字段=右表.字段
 
 On表示连接条件，条件字段就是代表相同的业务含义
 
@@ -1473,7 +1494,7 @@ select * from my_student as s inner join my_class as c on s.id = c.id;
 
 ```sql
 -- 内连接+别名
-select s.*，c.name as c_name，c.room from
+select s.*,c.name as c_name,c.room from
 my_student as s inner join my_class as c
 on s.id = c.id;
 ```
@@ -1494,7 +1515,7 @@ on s.id = c.id;
 - 左连接
 
 ```sql
-select s.*，c.name as c_name，c.room from
+select s.*,c.name as c_name,c.room from
 my_student as s left join my_class as c  -- my_student为主表
 on s.id = c.id;
 ```
@@ -1504,7 +1525,7 @@ on s.id = c.id;
 - 右连接
 
 ```sql
-select s.*，c.name as c_name，c.room from
+select s.*,c.name as c_name,c.room from
 my_student as s right join my_class as c -- my_class 为主表
 on s.id = c.id;
 ```
@@ -1515,13 +1536,12 @@ on s.id = c.id;
 
 - 全外连接
 
-左表和右表都不做限制，所有的记录都显示，两表不足的地方用null 填充。 全外连接不支持（+）这种写法。
-
-两个表都允许有空值 
+> 左表和右表都不做限制，所有的记录都显示，两表不足的地方用null 填充。 全外连接不支持（+）这种写法。两个表都允许有空值 。等同于左外连接和右外连接的并集。
+>
 
 #### 自然连接（natural join）
 
-> 自然连接，**就是自动匹配连接条件：系统以字段名字作为匹配条件（同名字段作为条件，多个同名字段都作为条件）。**
+> 自然连接，**就是自动匹配连接条件：系统以字段名字作为匹配条件（同名字段作为条件，多个同名字段都作为条件）**
 >
 
 自然连接分为**自然内连接**和**自然外连接**。
@@ -1729,13 +1749,13 @@ SELECT ProductName,UnitPrice*(UnitsInStock+UnitsOnOrder) FROM Products;
 **IFNULL() 函数**
 
 ```sql
-SELECT ProductName,UnitPrice*(UnitsInStock+IFNULL(UnitsOnOrder，0)) FROM Products;
+SELECT ProductName,UnitPrice*(UnitsInStock+IFNULL(UnitsOnOrder, 0)) FROM Products;
 ```
 
 **COALESCE() 函数**
 
 ```sql
-SELECT ProductName,UnitPrice*(UnitsInStock+COALESCE(UnitsOnOrder，0))FROM Products;
+SELECT ProductName,UnitPrice*(UnitsInStock+COALESCE(UnitsOnOrder, 0))FROM Products;
 ```
 
 ## 2.11 子查询
@@ -2130,10 +2150,10 @@ count(指定的有效值)--执行计划都会转化为count(\*)
 
 count(*)包括了所有的列，相当于行数，在统计结果的时候，**不会忽略列值为NULL，没有值返回0；**
 
-- count(1)包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL。（如果你的数据表没有主键，那么count(1)比count(\*)快。）
-- count(列名)只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。 
+- `count(1)`包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL。（如果你的数据表没有主键，那么count(1)比count(\*)快。）
+- `count(列名)`只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。 
 
-- count(*) 返回表中所有存在行的总数包括null，然而count(1) 返回的是去除null以外的所有行的总数。有默认值的也会被记录。（如果表里面只有一个字段那么是count(*)最快。）
+- `count(*)` 返回表中所有存在行的总数包括null，然而count(1) 返回的是去除null以外的所有行的总数。有默认值的也会被记录。（如果表里面只有一个字段那么是count(*)最快。）
 
 
 

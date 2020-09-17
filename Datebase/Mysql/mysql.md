@@ -75,7 +75,7 @@ mysql（主从架构）、分布式文件服务器->分布式缓存数据库redi
 
 1. 客户端发送一条查询给服务器
 
-2. 服务器先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果 否则进入下一阶段
+2. 服务器先检查查询缓存，如果命中了缓存，则立刻返回存储在缓存中的结果，否则进入下一阶段
 
 3. 服务器端进行SQL解析、预处理，再由优化器生成对应的执行计划。
 
@@ -240,58 +240,61 @@ innodb_buffer_pool_instances：如果不显式设置innodb_buffer_pool_instances
   （并发）多个相同请求竞争同一内存块？
   innodb_buffer_pool_instances，将innodb_buffer_pool分成几块；单cpu，情况下，内存竞争少，所以innodb_buffer_pool_instances参考cpu数量（cpu同一时间只能处理一个请求）。
 
-- order by(排序)
+### undo和redo日志
 
-  每个用户会有自己的内存：sort buffer 、join buffer、MRR等。
+> undo日志用于存放数据修改时，被修改前的值；redo日志存放数据修改时，记录数据修改后的记录。
 
-  一个用户建立连接后，会生成私有内存空间，sort buffer 和 join buffer
+#### undo
 
-  如果sql语句有排序数据取出至innodb buffer之后，要在sort buffer中进行排序。
+解决一致性，事务处理
 
-- undo：解决一致性，事务处理
+存储引擎中有ibdata1（磁盘中的文件），其中的UNDO中放着没有commit修改之前的数据。
 
-  存储引擎中有ibdata1（磁盘中的文件），其中的UNDO中放着没有commit修改之前的数据。
+| 内存中的数据包     |              |      |
+| ------------------ | ------------ | ---- |
+| 是否在事务中       | UNDO中的地址 | 数据 |
+| **ibdata数据格式** |              |      |
+| 是否在事务中       | UNDO中的地址 |      |
 
-  | 内存中的数据包     |              |      |
-  | ------------------ | ------------ | ---- |
-  | 是否在事务中       | UNDO中的地址 | 数据 |
-  | **ibdata数据格式** |              |      |
-  | 是否在事务中       | UNDO中的地址 |      |
+undo中的值为数据前镜像
 
-  undo中的值为数据前镜像
+undo作用有两个：1、数据回滚的值 2、维护数据一致性
 
-  undo作用有两个：1、数据回滚的值 2、维护数据一致性
+update或者delete语句没有where条件时，Undo以及ibdata（磁盘上）可能会被撑的很大，恢复不了，磁盘可能被UNDO都占用。
 
-  update或者delete语句没有where条件时，Undo以及ibdata（磁盘上）可能会被撑的很大，恢复不了，磁盘可能被UNDO都占用。
 
-- log buffer：日志缓存
 
-  日志先行-Write head log（WHL），日志是为了灾难恢复，一定要落盘（写在磁盘中）， **commit将日志永久性的保存在磁盘中。 **
+#### redo
 
-  log buffer原则：达到1/2或Master Thread1S或达到1M或commit时，刷到磁盘中（log_thread）。
+日志先行-Write head log（WHL），日志是为了灾难恢复，一定要落盘（写在磁盘中）， **commit将日志永久性的保存在磁盘中。 **
 
-  **mysql启动时会做实例恢复，依据redo日志进行实例恢复**
+log buffer原则：达到1/2或Master Thread1S或达到1M或commit时，刷到磁盘中（log_thread）。
 
-  如果没有commit，但是写到了磁盘中，这时，数据库崩了，恢复后，数据库会自动把没有commit的事务rollback。
+**mysql启动时会做实例恢复，依据redo日志进行实例恢复**
 
-  ib_logfile0 和ib_logfile1，都叫redo log（重做的日志，log buffer中的所有日志），记录所有的脏数据。
+如果没有commit，但是写到了磁盘中，这时，数据库崩了，恢复后，数据库会自动把没有commit的事务rollback。
 
-  
+ib_logfile0 和ib_logfile1，都叫redo log（重做的日志，log buffer中的所有日志），记录所有的脏数据。
 
-  **数据库会hung住**
-  
-  当redo日志满了，且不能进行覆盖时（原因：io_write_thread还没写脏数据），数据库会hung住，无法修改数据。
-  解决方案：是redo日志变大或者redo日志文件增加
 
-  
 
-  **redo数据刷到磁盘中，防止多次IO**
+**数据库会hung住**
 
-  Innodb_flush_log_trx_commit
+当redo日志满了，且不能进行覆盖时（原因：io_write_thread还没写脏数据），数据库会hung住，无法修改数据。
+解决方案：是redo日志变大或者redo日志文件增加
 
-  - =1，严格遵循commit，提交一次。绝对安全。
-- **=0，一秒钟刷一次，可能丢失一秒钟的数据。**
-  - =2，将commit的数据放在操作系统的缓存中，一秒将操作系统内存中的数据刷入硬盘。
+
+
+**redo数据刷到磁盘中，防止多次IO**
+
+
+
+Innodb_flush_log_at_trx_commit
+
+- =1，严格遵循commit，提交一次。绝对安全。
+- =0，一秒钟刷一次，可能丢失一秒钟的数据。
+
+- =2，将commit的数据放在操作系统的缓存中，一秒将操作系统内存中的数据刷入硬盘。
 
 
 
@@ -356,19 +359,38 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 4. type
 
-   **对表或索引访问方式**，表示MySQL在表中找到所需行的方式，又称“访问类型”。
+   > **对表或索引访问方式**，表示MySQL在表中找到所需行的方式，又称“访问类型”。type显示的是访问类型，是较为重要的一个指标，
+>
+   > 结果值从好到坏依次是：system > const > eq_ref > ref > fulltext > ref_or_null > index_merge > unique_subquery > index_subquery > range > index > ALL ，除了all之外，其他的type都可以使用到索引，除了index_merge之外，其他的type只可以用到一个索引。一般来说，得保证查询至少达到range级别，最好能达到ref。
+>
 
-   常用的类型有： **ALL、index、range、 ref、eq_ref、const、system、NULL（从左到右，性能从差到好） **
+   - A：system：表中只有一行数据或者是空表，且只能用于myisam和memory表。如果是Innodb引擎表，type列在这个情况通常都是all或者index
+   
+   - B：const：使用唯一索引或者主键，返回记录一定是1行记录的等值where条件时，通常type是const。其他数据库也叫做唯一索引扫描
+   
+   - C：eq_ref：出现在要连接过个表的查询计划中，驱动表只返回一行数据，且这行数据是第二个表的主键或者唯一索引，且必须为not null，唯一索引和主键是多列时，只有所有的列都用作比较时才会出现eq_ref
+   
+   - D：ref：不像eq_ref那样要求连接顺序，也没有主键和唯一索引的要求，只要使用相等条件检索时就可能出现，常见与辅助索引的等值查找。或者多列主键、唯一索引中，使用第一个列之外的列作为等值查找也会出现，总之，返回数据不唯一的等值查找就可能出现。
+   
+   - E：fulltext：全文索引检索，要注意，全文索引的优先级很高，若全文索引和普通索引同时存在时，mysql不管代价，优先选择使用全文索引
+   
+   - F：ref_or_null：与ref方法类似，只是增加了null值的比较。实际用的不多。
+   
+   - G：index_merge：表示查询使用了两个以上的索引，最后取交集或者并集，常见and ，or的条件使用了不同的索引，官方排序这个在ref_or_null之后，但是实际上由于要读取所个索引，性能可能大部分时间都不如range
+   
+   - H：unique_subquery：用于where中的in形式子查询，子查询返回不重复值唯一值
+   
+   - I：index_subquery：用于in形式子查询使用到了辅助索引或者in常数列表，子查询可能返回重复值，可以使用索引将子查询去重。
+   
+   - J：range：索引范围扫描，常见于使用 =, <>, >, >=, <, <=, IS NULL, <=>, BETWEEN, IN()或者like等运算符的查询中。
+   
+   - K：index：索引全表扫描，把索引从头到尾扫一遍，常见于使用索引列就可以处理不需要读取数据文件的查询、可以使用索引排序或者分组的查询。
+   
+     索引扫描的两种情况，一种是查询使用了覆盖索引，那么它只需要扫描索引就可以获得数据，这个效率要比全表扫描要快，因为索引通常比数据表小，而且还能避免二次查询。在extra中显示Using index，反之，如果在索引上进行全表扫描，没有Using index的提示
+   
+   - L：all：这个就是全表扫描数据文件，然后再在server层进行过滤返回符合要求的记录。
 
-   - ALL：Full Table Scan， MySQL将遍历全表以找到匹配的行
-- index: Full Index Scan，index与ALL区别为index类型只遍历索引树
-   - range:只检索给定范围的行，使用一个索引来选择行
-- ref: 表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值
-   - eq_ref: 类似ref，区别就在使用的索引是唯一索引，对于每个索引键值，表中只有一条记录匹配，简单来说，就是多表连接中使用primary key或者 unique key作为关联条件
-- const、system: 当MySQL对查询某部分进行优化，并转换为一个常量时，使用这些类型访问。如将主键置于where列表中，MySQL就能将该查询转换为一个常量，system是const类型的特例，当查询的表只有一行的情况下，使用system
-   - NULL: MySQL在优化过程中分解语句，执行时甚至不用访问表或索引，例如从一个索引列里选取最小值可以通过单独索引查找完成。
-
- 
+   
 
 5. possible_keys
 
@@ -386,7 +408,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
    如果没有选择索引，键是NULL。要想强制MySQL使用或忽视possible_keys列中的索引，在查询中使用FORCE INDEX、USE INDEX或者IGNORE INDEX。
 
 
- 
+
 
 7. key_len
 
@@ -400,7 +422,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 8. ref
 
-   列与索引的比较，表示上述表的连接匹配条件，即哪些列或常量被用于查找索引列上的值，const, 常数值；func, 函数表达式
+   如果是使用的常数等值查询，这里会显示const，如果是连接查询，被驱动表的执行计划这里会显示驱动表的关联字段，如果是条件使用了表达式或者函数，或者条件列发生了内部隐式转换，这里可能显示为func
 
    
 
@@ -412,7 +434,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 10. Filtered
 
-    过滤率，过滤率越低，sql越有优化的空间。从统计信息得到的。
+    过滤率，过滤率越低，sql越有优化的空间。从统计信息得到的。这个字段表示存储引擎返回的数据在server层过滤后，剩下多少满足查询的记录数量的比例，注意是百分比，不是具体记录数。
 
     
 
@@ -429,6 +451,7 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 - Using temporary：表示MySQL需要使用临时表来存储结果集，常见于排序和分组查询，常见 group by ; order by
 
 - **using index ：表示使用了索引覆盖优化**
+
 - Using filesort：当Query中包含 order by 操作，而且无法利用索引完成的排序操作称为“文件排序”
 
     ```sql
@@ -444,6 +467,12 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 - No tables used：Query语句中使用from dual 或不含任何from子句
 
+12. partitions
+
+    版本5.7以前，该项是explain partitions显示的选项，5.7以后成为了默认选项。该列显示的为分区表命中的分区情况。非分区表该字段为空（null）。
+
+
+
 ## 数据库的索引
 
 ### 8.1 为什么需要索引?
@@ -451,27 +480,31 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 当数据保存在**磁盘类存储介质上**时，它是作为**数据块存放**。这些数据块是被当作一个整体来访问的，这样可以保证操作的原子性。**硬盘数据块存储结构类似于链表，**都包含数据部分，以及一个指向下一个节点（或数据块）的**指针，**不需要连续存储。
 记录集只能在某个关键字段上进行排序，所以如果需要在一个无序字段上进行搜索，就要执行一个线性搜索（Linear Search）的过程，**平均需要访问N/2的数据块**，N是表所占据的数据块数目。如果这个字段是一个非主键字段（也就是说，不包含唯一的访问入口），那么需要在N个数据块上搜索整个表格空间。
 
-
-但是对于一个有序字段，可以运用二分查找（Binary Search），这样只要访问log2 (N)的数据块。这就是为什么性能能得到本质上的提高。
-
-索引列表是B*类树的数据结构，查询的时间复杂度为O(log2\N)，定位到特定值得行就会非常快，所以其查询速度就会非常快。
-
  
 
 **数据库查询只能用到一个索引**，和全表扫描/只使用一个索引的速度比起来，去分析两个索引二叉树更加耗费时间，所以绝大多数情况下数据库都是是用一个索引。
-
-**数据库索引的存在，可能导致相关字段删除的效率降低；**
 
 ### 8.2 什么是索引
 
 #### 索引
 
-> **索引是对记录集的多个字段进行排序的方法。**在一张表中为一个字段创建一个索引，将创建另外一个数据结构，包含字段数值以及指向相关记录的指针，然后对这个索引结构进行排序，允许在该数据上进行二分法排序。 
+> **索引是对记录集的多个字段进行排序的方法**。
+>
+> 在一张表中为一个字段创建一个索引，将创建另外一个数据结构，包含字段数值以及指向相关记录的指针，然后对这个索引结构进行排序，允许在该数据上进行二分法排序。 
 
 这就是为什么一个表只能有一个主键， 一个表只能有一个**「聚集索引」ID**，因为主键的作用就是把「表」的数据格式转换成「索引（平衡树）」的格式放置。
 
-
 假如给user表的name字段加上索引 ， 那么索引就是**由name字段中的值构成**，在数据改变时， DBMS需要一直维护索引结构的正确性。如果给表中多个字段加上索引 ， 那么就会出现**多个独立的索引结构**，每个索引（非聚集索引）互相之间不存在关联。 
+
+##### 统计信息
+
+> MySQL执行SQL会经过SQL解析和查询优化的过程，解析器将SQL分解成数据结构并传递到后续步骤，查询优化器发现执行SQL查询的最佳方案、生成执行计划。查询优化器决定SQL如何执行，依赖于数据库的统计信息。
+> 统计信息(oracle只有40%到60%正确率，mysql较高80%左右)存在`.frm`中。只收集有索引的列。表索引信息存在`.idb`，有时候统计信息不及时，我们可以手动收集统计信息：Analyze table 表明；
+
+**收集统计信息**
+
+- 手动收集：innodb和myisam存储引擎都可以通过执行“Analyze table tablename”来收集表的统计信息，除非执行计划不准确，否则不要轻易执行该操作，如果是很大的表该操作会影响表的性能。
+- 自动触发：第一次打开表的时候、表修改的行超过1/6或者20亿条时、当有新的记录和索引插入时、执行show index from tablename或者执行show table stauts、查询information_schema.tables\statistics 时
 
 #### 二级索引（辅助索引）
 
