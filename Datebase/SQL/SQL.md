@@ -1,21 +1,10 @@
 # 1、基础教程
 
-## 1.1 一些小知识点
+## 1.1 SQL语言
 
-SQL 语言具有两种使用方式，分别称为交互式SQL和嵌入式 SQL。
-
-在MySQL中，如果我们**删除了表中的大量数据**，或者我们对**含有可变长度文本数据类型**(VARCHAR，TEXT或BLOB)的表进行了很多更改，不过被删除的数据记录仍然被保持在MySQL的**链接清单**中，因此数据存储文件的大小并不会随着数据的删除而减小。
-
-对MySQL进行**碎片整理的**方法非常简单，因为MySQL已经给我们提供了对应的SQL指令，这个SQL指令就是OPTIMIZE TABLE，可以压缩并且重建表的索引
-
-管理MYSQL服务器程序
-
-1. 通过windows提供的服务：cmd.exe；services.msc 
-2. 命令行的操作：Net stop 服务名；net start MYSQL
-
-
-
-可以把 SQL 分为两个部分：**数据操作语言(DML) 和数据定义语言 (DDL)。**
+> SQL 语言具有两种使用方式，分别称为交互式SQL和嵌入式 SQL。
+>
+> 可以把 SQL 分为两个部分：**数据操作语言(DML) 和数据定义语言 (DDL)**。
 
 ### DML
 
@@ -34,7 +23,13 @@ SQL 语言具有两种使用方式，分别称为交互式SQL和嵌入式 SQL。
 - DELETE - 从数据库表中删除数据
 - INSERT INTO - 向数据库表中插入数据
 
- 
+
+
+**DELETE 数据**
+
+在MySQL中，如果我们**删除了表中的大量数据**，或者我们对**含有可变长度文本数据类型**(VARCHAR，TEXT或BLOB)的表进行了很多更改，不过被删除的数据记录仍然被保持在MySQL的**链接清单**中，因此数据存储文件的大小并不会随着数据的删除而减小。
+
+对MySQL进行**碎片整理的**方法非常简单，因为MySQL已经给我们提供了对应的SQL指令，这个SQL指令就是OPTIMIZE TABLE，可以压缩并且重建表的索引
 
 ### DDL
 
@@ -348,7 +343,7 @@ create table tab_new as select * from tab_old where 1=2;
 
 约束用于限制加入表的数据的类型。
 
-可以在创建表时规定约束（**通过** **CREATE TABLE** **语句**），或者在表创建之后也可以（**通过** **ALTER TABLE** **语句**）。
+可以在创建表时规定约束（通过 CREATE TABLE 语句），或者在表创建之后也可以（通过 ALTER TABLE 语句）。
 
 我们将主要探讨以下几种约束：
 
@@ -360,11 +355,15 @@ create table tab_new as select * from tab_old where 1=2;
 - **DEFAULT**
 - **auto_increment**
 
+
+
 #### NOT NULL 约束
 
 NOT NULL 约束强制列不接受 NULL 值。
 
 NOT NULL 约束**强制字段始终包含值**。这意味着，如果不向字段添加值，就无法插入新记录或者更新记录。
+
+
 
 #### UNIQUE 约束
 
@@ -449,7 +448,7 @@ primary key(number,course)
 
 效果：
 
- ![image-20200720102412856](C:\Users\Administrator\Desktop\JAVA基础\Datebase\SQL\SQL.assets\image-20200720102412856.png)
+![image-20200720102412856](SQL.image/image-20200720102412856.png)
 
 方案3：当表已经创建好了之后，再次额外追加主键。可以通过修改字段属性，也可以直接追加：alter table 表名 add primary key（字段列表）;
 
@@ -507,13 +506,13 @@ insert into my_auto values(default,'汪涵')
 
 ![](SQL.image/image-20200721151807212.png)
 
-1. 任何一个字段要做自增长，**本身必须是一个索引(key)。**
+1. 任何一个字段要做自增长，**本身必须是一个索引(key)**。
 2. 自增长字段必须是数字（整型）。
-3. **一张表最多只能有一个自增长。**
+3. **一张表最多只能有一个自增长**。
 
 **修改自增长**
 
-1. 自增长涉及到字段改变，必须先删除自增长，后增加（一张表只能有一个自增长）。修改当前自增长已经存在的值（修改的值必须比当前自增长最大值还要大）。**Alter table 表名 auto_increment =值;**
+1. 自增长涉及到字段改变，必须先删除自增长，后增加（一张表只能有一个自增长）。修改当前自增长已经存在的值（修改的值必须比当前自增长最大值还要大）。**Alter table 表名 auto_increment =值**。
 
    ![](SQL.image/image-20200721152055598.png)
 
@@ -561,7 +560,9 @@ insert into my_auto values(default,'汪涵')
 
 FOREIGN KEY 约束用于预防破坏表之间连接的动作。FOREIGN KEY 约束也能防止非法数据插入外键列，因为它必须是它指向的那个表中的值之一。
 
-constraint Id_P _FK foreign key(Id_P) references teacher(Id_P)；
+```sql
+constraint Id_P _FK foreign key(Id_P) references teacher(Id_P);
+```
 
 
 
@@ -596,11 +597,10 @@ Address varchar(255),
 City varchar(255),
 CHECK (Id_P>0)
 )
-```
 
-如果需要命名 CHECK 约束，以及为多个列定义 CHECK 约束，请使用下面的 SQL 语法：
-
+--如果需要命名 CHECK 约束，以及为多个列定义 CHECK 约束，请使用下面的 SQL 语法：
 CONSTRAINT chk_Person CHECK (Id_P>0 AND City='Sandnes')
+```
 
 
 
@@ -656,13 +656,14 @@ alter table emp add constraint jfsd default 10000 for gongzi
 
 ### 1.3.6 外键
 
-外键（foreign key）：外面的键（键不在自己表中），如果一张表中有一个字段（非主键）指向另外一张表的主键，**那么将该字段称为外键**
+> 外键（foreign key）：外面的键（键不在自己表中），如果一张表中有一个字段（非主键）指向另外一张表的主键，**那么将该字段称为外键**。
+>
 
-- 增加外键
+#### 增加外键
 
-  外键可以在创建表的时候或者创建表之后增加（但是要考虑数据问题）。
+外键可以在创建表的时候或者创建表之后增加（但是要考虑数据问题）。
 
-  一张表可以有多个外键
+一张表可以有多个外键
 
 1）创建表的时候增加外键：在所有的表字段语句之后，使用foreign key（外键字段） references外部表（主键字段）
 
@@ -685,7 +686,7 @@ Alter table 表名 add [constraint 外键名字] foreign key（外键字段）re
 
 ```sql
 --增加外键
-alter table my_foreign2 **add**
+alter table my_foreign2 add
 --指定外键名
 constraint student_class_1
 --指定外键字段
@@ -694,7 +695,9 @@ foreign key(c_id)
 references my_class(id);
 ```
 
-- 修改外键&删除外键（外键不可修改，只能先删除后新增。）
+#### 修改外键&删除外键
+
+（外键不可修改，只能先删除后新增）
 
 删除外键的语法：
 
@@ -713,7 +716,7 @@ show create table my_foreign1;
 
 ![image-20200720103309432](SQL.image/image-20200720103309432.png)
 
-- 外键作用
+#### 外键作用
 
 **对字表的约束：**子表数据进行写操作（增和改）的时候，如果对应的外键字段在父表中找不到对应的匹配，那么操作会失败（约束子表数据操作）。外键有值，外键对应的表无数据则不能插入。
 
@@ -832,17 +835,13 @@ insert into my_foreign2 values(null,'张飞',5);
 alter table 表名 character set 字符集;
    alter table user character set gb2312;
    ```
-```
-   
-   支持，跨数据库重命名，此时当前表即被剪切过去而不再存在于当前数据库中!
-
 ### 1.4.3 表记录操作
 
 #### WHERE(闭区间)
 
 where原理：where是唯一一个直接从磁盘获取数据的时候就开始判断的条件。从磁盘取出一条记录，开始进行where判断，判断的结果如果成立就保存到内存；如果失败就直接放弃。
 
-​```sql
+```sql
 SELECT 列名称 FROM 表名称 WHERE 列 运算符 值
 ```
 
@@ -996,7 +995,7 @@ SQL的执行顺序：
 
 - Having能做where能做的所有事情，但是where却不能坐having能做的很多事情。
 
-- **分组统计的结果或者说统计函数都只能在having中使用**
+- **分组统计的结果或者说统计函数都只能在having中使用**。
 - **Having能够使用字段别名，而where不能。** Where是从磁盘取数据，而别名是在字段进入内存后才会产生的。
 
 #### ORDER BY 
@@ -1022,34 +1021,30 @@ SELECT * FROM mytable ORDER BY col1 DESC,col2 ASC;
 #### INSERT INTO 
 
 ```sql
+--可以省略对列的指定，要求 values () 括号内，提供给了按照**列顺序**出现的所有字段的值。
 INSERT INTO 表名称 VALUES (值1,值2,....);
 INSERT INTO Persons VALUES ('Gates','Bill', 'Xuanwumen 10', 'Beijing');
 ```
 
-我们也可以指定所要插入数据的列：**构造符（）**
-
 ```sql
+--我们也可以指定所要插入数据的列：构造符（）
 INSERT INTO table_name (列1,列2,...) VALUES (值1,值2,....)
 INSERT INTO Persons (LastName,Address) VALUES ('Wilson','Champs-Elysees')
 ```
-
-可以省略对列的指定，要求 values () 括号内，提供给了按照**列顺序**出现的所有字段的值。
 
 ```sql
 -- 或者使用set语法。
 Insert into tbl_name set field=value,…；
 ```
 
-可以指定在**插入的值出现主键（或唯一索引）冲突时**，更新其他非主键列的信息。
-
 ```sql
+--可以指定在插入的值出现主键（或唯一索引）冲突时，更新其他非主键列的信息。
 Insert into tbl_name 值 on duplicate key update 字段=值, …;
 -- 逻辑：插入（失败，主键冲突）--跟新
 ```
 
-可以通过一个查询的结果，作为需要插入的值。
-
-```java
+```sql
+--可以通过一个查询的结果，作为需要插入的值
 Insert into tbl_name select …;
 ```
 
@@ -1065,23 +1060,31 @@ Insert into tbl_name select …;
 
 - 下面语句会将指定字段的值全部修改
 
-  update 表名 set 字段名称=值;update employee set salary=5000;
+  ```sql
+  update 表名 set 字段名称=值;
+  update employee set salary=5000;
+  ```
 
 - 如果要修改多个字段
 
+  ```sql
   update 表名 set 字段1名称=值 ，字段2名称=值，...;
+  ```
 
 -  多表更新（使用join语法）
 
+  ```sql
   Update t1 join t2 on t1.x=t2.x set字段1名称=值 ，字段2名称=值where cond;
+  ```
 
-以上方式，进行修改，会将表中这个字段所有值都修改.在实际开发中，对于修改操作，都是有条件修改。
+- 以上方式，进行修改，会将表中这个字段所有值都修改。在实际开发中，对于修改操作，都是有条件修改。
 
-UPDATE 表名称 SET 列名称 = 新值 WHERE 列名称 = 某值条件；
+  ```sql
+  --UPDATE 表名称 SET 列名称 = 新值 WHERE 列名称 = 某值条件；
+  update employee set salary=3000 where username='aaa';
+  ```
 
-```sql
-update employee set salary=3000 where username='aaa';
-```
+  
 
 #### DELETE 
 
@@ -1299,19 +1302,6 @@ gender enum(‘male’，’female’.’secret’)
 
 ## 2.2 索引
 
-> 索引：系统根据某种算法，将已有的数据（未来可能新增的数据），单独建立一个文件，文件能实现快速的数据匹配数据，并且能快速的找到对应表中的记录。
->
-
-**增加索引的前提条件：**索引本身会产生索引文件（有时候可能比数据文件还大），会非常耗费磁盘空间；如果某个字段需要作为查询的条件经常使用，那么可以使用索引（一定会想办法增加）；如果某个字段需要进行数据的有效性约束，也可以使用索引（主键，唯一键）。
-
-**mysql中提供了多种索引**
-
-- 主键索引：primary key
-- 唯一索引：unique key
-- 全文索引：fulltext index；针对文字内部的关键字进行索引，全文索引的最大问题在于如何确定关键字
-
-- 普通索引：index
-
 **数据源**
 
 数据来源，关系型数据库的来源都是数据表。本质上只要保证数据类似二维表，最终都可以作为数据源。
@@ -1455,14 +1445,7 @@ SELECT column_name(s) FROM table_name WHERE column_name LIKE pattern;
 
 > 连接查询：将多张表（大于2张）进行记录的连接（按照某个指定的条件进行数据拼接）。最终结果是记录数有可能变化，字段数一定会增加（至少两张表合并）。
 >
-
-连接查询的意义：在用户查看数据的时候，需要显示的数据来自多张表。
-
-
-
-连接查询（join）使用方式：**左表** **join** **右表**
-
-
+> 连接查询的意义：在用户查看数据的时候，需要显示的数据来自多张表。
 
 ### 连接查询分类（join）
 
@@ -1475,7 +1458,7 @@ Sql将连接查询分成四类：内连接，外连接（不支持where连接；
 
 基本语法：左表 cross join 右表
 
-**笛卡尔积没有意义，应尽量避免。**交叉连接存在的价值是保证连接结构的完整性。
+**笛卡尔积没有意义，应尽量避免**。交叉连接存在的价值是保证连接结构的完整性。
 
 #### 内连接
 
@@ -1594,15 +1577,7 @@ Select 语句2 .........
 
 联合查询只要求字段一样，**跟数据类型无关**。 
 
-### 2.7.2 union和union all？
-
-union在进行表求并集后去掉重复的元素，所以会对所产生的结果集进行排序运算，删除重复的记录再返回结果。
-
-union all则只是简单地将两个结果集合并后就返回结果。
-
-在执行查询操作时，union all要比union快得多。
-
-### 2.7.3 与order by使用
+### 2.7.2 与order by使用
 
 在联合查询中：order by不能直接使用，需要对查询语句使用括号才行。
 
@@ -2171,10 +2146,6 @@ SELECT COUNT(column_name) FROM table_name
 SELECT COUNT(Customer) AS CustomerNilsen FROM Orders WHERE Customer='Carter';
 ```
 
-**COUNT(*) 语法**
-
-COUNT(*) 函数返回表中的记录数。
-
 ## GROUP BY 
 
 > GROUP BY 语句用于结合合计函数，**根据一个或多个列对结果集进行分组。**
@@ -2191,15 +2162,11 @@ COUNT(*) 函数返回表中的记录数。
 | 5        | 2008/08/06    | 2000           | Adams        |
 | 6        | 2008/07/21    | 100            | Carter       |
 
-现在，我们希望查找每个客户的总金额（总订单）。
-
-我们想要使用 GROUP BY 语句对客户进行组合。
-
 我们使用下列 SQL 语句：
 
-SELECT Customer，SUM(OrderPrice) FROM Orders
-
-GROUP BY Customer
+```sql
+SELECT Customer，SUM(OrderPrice) FROM Orders GROUP BY Customer;
+```
 
 结果集类似这样：
 

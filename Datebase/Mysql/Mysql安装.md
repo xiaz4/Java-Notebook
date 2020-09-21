@@ -13,8 +13,6 @@
 
 **配置初始化的my.ini文件的文件**
 
-![img](${image}/342ac65c103853438acf022343e3c178cb8088a3.jpeg)
-
 ```properties
 [mysql]
 # 设置mysql客户端默认字符集
@@ -60,8 +58,6 @@ mysql安装为windows的服务：mysqld install
 **启动mysql**
 
 net start mysql；net stop mysql
-
-![image-20200806124250213](${image}/image-20200806124250213.png)
 
 **登录mysql**
 
