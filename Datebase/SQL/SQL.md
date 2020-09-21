@@ -6,7 +6,7 @@ SQL 语言具有两种使用方式，分别称为交互式SQL和嵌入式 SQL。
 
 在MySQL中，如果我们**删除了表中的大量数据**，或者我们对**含有可变长度文本数据类型**(VARCHAR，TEXT或BLOB)的表进行了很多更改，不过被删除的数据记录仍然被保持在MySQL的**链接清单**中，因此数据存储文件的大小并不会随着数据的删除而减小。
 
-对MySQL进行**碎片整理的**方法非常简单，因为MySQL已经给我们提供了对应的SQL指令，这个SQL指令就是OPTIMIZE TABLE
+对MySQL进行**碎片整理的**方法非常简单，因为MySQL已经给我们提供了对应的SQL指令，这个SQL指令就是OPTIMIZE TABLE，可以压缩并且重建表的索引
 
 管理MYSQL服务器程序
 
@@ -1049,7 +1049,9 @@ Insert into tbl_name 值 on duplicate key update 字段=值, …;
 
 可以通过一个查询的结果，作为需要插入的值。
 
+```java
 Insert into tbl_name select …;
+```
 
 **注意：**
 
@@ -2378,8 +2380,9 @@ ON { table|view }
 
 有**INSTEAD-OF**和**AFTER**两种触发器。触发器是一种专用类型的存储过程，它被捆绑到**表格或者视图**上。
 
-- **INSTEAD-OF**触发器是替代数据操控语言(DML)语句对表格执行语句的存储过程。例如，如果我有一个用于TableA的INSTEAD-OF-UPDATE触发器，同时对这个表格执行一个更新语句，那么INSTEAD-OF-UPDATE触发器里的代码会执行，而不是我执行的更新语句则不会执行操作。
-- **AFTER触发器**要在DML语句在数据库里使用之后才执行。这些类型的触发器对于监视发生在数据库表格里的数据变化十分好用。
+- **INSTEAD-OF触发器**：是替代数据操控语言(DML)语句对表格执行语句的存储过程。例如，如果我有一个用于TableA的INSTEAD-OF-UPDATE触发器，同时对这个表格执行一个更新语句，那么INSTEAD-OF-UPDATE触发器里的代码会执行，而不是我执行的更新语句则不会执行操作。
+- **AFTER触发器**：要在DML语句在数据库里使用之后才执行，且只能定义在表上。这些类型的触发器对于监视发生在数据库表格里的数据变化十分好用。
+  - insert、update、delete触发器
 
 **触发器分为：**
 

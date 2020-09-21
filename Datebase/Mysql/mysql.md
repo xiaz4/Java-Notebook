@@ -359,11 +359,9 @@ explain select e.no, e.name from emp e left join dept d on e.dept_no = d.no wher
 
 4. type
 
-   > **对表或索引访问方式**，表示MySQL在表中找到所需行的方式，又称“访问类型”。type显示的是访问类型，是较为重要的一个指标，
->
+   > **对表或索引访问方式**，表示MySQL在表中找到所需行的方式，又称“访问类型”。type显示的是访问类型，是较为重要的一个指标。
+   >
    > 结果值从好到坏依次是：system > const > eq_ref > ref > fulltext > ref_or_null > index_merge > unique_subquery > index_subquery > range > index > ALL ，除了all之外，其他的type都可以使用到索引，除了index_merge之外，其他的type只可以用到一个索引。一般来说，得保证查询至少达到range级别，最好能达到ref。
->
-
    - A：system：表中只有一行数据或者是空表，且只能用于myisam和memory表。如果是Innodb引擎表，type列在这个情况通常都是all或者index
    
    - B：const：使用唯一索引或者主键，返回记录一定是1行记录的等值where条件时，通常type是const。其他数据库也叫做唯一索引扫描
@@ -562,6 +560,24 @@ set optimizer_switch = "mrr_cost_based= off";
 
 ### 8.3 索引类型
 
+**观察到锁信息**
+
+-- 查看是否有锁表
+
+show OPEN TABLES where In_use > 0;
+
+-- 查看正在锁的事务
+
+SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCKS; 
+
+-- 查看等待锁的事务
+
+SELECT * FROM INFORMATION_SCHEMA.INNODB_LOCK_WAITS; 
+
+-- 查看innodb引擎的运行时信息
+
+show engine innodb status;
+
 #### 不同的索引
 
 1. 普通索引：  normal
@@ -586,7 +602,7 @@ set optimizer_switch = "mrr_cost_based= off";
 
    **唯一索引好，还是普通索引好？**
 
-   **查询**：唯一索引比普通索引多做了一次内存搜索和判断(不知道后面值是否一致)，性能相差微乎其微！
+   **查询**：唯一索引比普通索引多做了一次内存搜索和判断(不知道后面值是否一致)，性能相差微乎其微！对于写完即读的情况，二者没有区别。
 
    **更新**：**change buffer（innodb_buffer_pool中子集 **），将操作统一输入到磁盘的时候（修改的值不马上用），会将每个表的操作集合，一起操作。唯一索引：修改时要判断唯一性；普通索引：修改时不需要读取记录。
 
@@ -596,7 +612,7 @@ set optimizer_switch = "mrr_cost_based= off";
 
    唯一索引，change buffer失效，因为需要保持列值的唯一性。Change buffer 好处减少io次数。
 
-   **建普通索引优于建立唯一索引。**
+   **建普通索引优于建立唯一索引**。
 
    log buffer主要节省的是随机写磁盘的 IO 消耗（转成顺序写），而 change buffer 主要节省的则是随机读磁盘的 IO 消耗。
 
@@ -735,14 +751,14 @@ set optimizer_switch = "mrr_cost_based= off";
 
 ### 8.5 索引失效的条件
 
-1. **最左前缀匹配原则组合索引非常重要的原则**
-2. **条件中用or**，即使其中有条件带索引，也不会使用索引查询（这就是查询尽量不要用or的原因，用in吧）
-3. 对于多列索引，不是使用的第一部分（最左），则不会使用索引。
+1. 最左前缀匹配原则组合索引非常重要的原则
+2. 条件中用or，即使其中有条件带索引，也不会使用索引查询（这就是查询尽量不要用or的原因，用in吧）
 4. 如果列类型是字符串，字符数据，那一定要在条件中将数据使用引号引用起来，否则不会使用索引
-5. **where中有函数，不要在列上进行运算**
+5. where中有函数、类型转换，不要在列上进行运算
 6. like “%aaa%” 不会使用索引（全表扫描），而like “aaa%”可以使用索引。
 7. 所有不等于（！= /<>/not in），不走索引。
 8. Is null，is not null，不走索引。索引里面不存空值的。
+8. 数据量少，全表扫描更快
 
 
 
@@ -1092,7 +1108,7 @@ show variables like 'join_buffer_size'
 >
 > using batched key access说明使用了bka，使用的是join buffer
 
-大量的辅助索引顺序和主键索引顺序不一致，用BKA，借鉴MRR，所以打开BKA要打开两个参数一个为BKA参数，一个为MRR参数
+大量的辅助索引顺序和主键索引顺序不一致，跳跃查询，用BKA，借鉴MRR，所以打开BKA要打开两个参数一个为BKA参数，一个为MRR参数
 
 **BKA -> index NLJ > BNL > Simple NLJ**
 
@@ -1303,7 +1319,7 @@ MGR：Mysql自己的MGR。基于中间件的分布式。Mycat（一台服务器�
 
 20. Tx_isolation：提交读，可以设置mysql的隔离级别。
 
-21. Sync_binlog，Innodb_flush_log_trx_commit 都设成1，双一模式（安全），都设成0，性能最高。
+21. Sync_binlog，Innodb_flush_log_at_trx_commit 都设成1，双一模式（安全），都设成0，性能最高。
 
 22. 如果要求，写入及读，只能采用单实例，主库读主库写。
 
