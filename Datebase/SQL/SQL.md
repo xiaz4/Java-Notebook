@@ -11,7 +11,7 @@
 > SQL (结构化查询语言)是用于执行查询的语法。但是 SQL 语言也包含用于更新、插入和删除记录的语法。
 >
 
-查询和更新指令构成了 SQL 的 **DML** **部分**：
+查询和更新指令构成了 SQL 的 DML 部分：
 
 - SELECT - 从数据库表中获取数据
 
@@ -129,8 +129,6 @@ with grant option
 ### DQL
 
 > 数据查询语言（ Data Query Language） ，数据查询语言DQL基本结构是由SELECT子句，FROM子句，WHERE
-
-
 
 执行顺序
 
@@ -339,21 +337,23 @@ create table tab_new as select * from tab_old where 1=2;
 
 ### 1.3.2 约束
 
-注意:数据库中一共有六种约束，而mysql只支持五种
+注意：数据库中一共有六种约束，而mysql只支持五种
 
 约束用于限制加入表的数据的类型。
 
 可以在创建表时规定约束（通过 CREATE TABLE 语句），或者在表创建之后也可以（通过 ALTER TABLE 语句）。
 
+
+
 我们将主要探讨以下几种约束：
 
-- **NOT NULL**
-- **UNIQUE**
-- **PRIMARY KEY**
-- **FOREIGN KEY**
-- **CHECK**
-- **DEFAULT**
-- **auto_increment**
+- NOT NULL
+- UNIQUE
+- PRIMARY KEY
+- FOREIGN KEY
+- CHECK
+- DEFAULT
+- auto_increment
 
 
 
@@ -823,8 +823,8 @@ insert into my_foreign2 values(null,'张飞',5);
 2. 修改表的名称
 
    ```sql
-   alter  table 旧表名 rename to 新表名;   
-   alter  table employee rename  to user;
+   alter table 旧表名 rename to 新表名;   
+   alter table employee rename to user;
    ```
 
    
@@ -897,8 +897,8 @@ SQL的执行顺序：
 - 第一步：执行FROM
 - 第二步：WHERE条件过滤
 - 第三步：GROUP BY分组
-- 第四步：执行SELECT投影列
-- 第五步：HAVING条件过滤
+- 第四步：HAVING条件过滤
+- 第五步：执行SELECT投影列
 - 第六步：执行ORDER BY 排序
 
  **select的数据行数保持一致；**
@@ -987,7 +987,9 @@ SQL的执行顺序：
 
 15. 在查询中可以直接对列进行运算
 
+    ```sql
     select * from student where (english+chinese+math)>200;
+    ```
 
 #### having
 
@@ -1003,7 +1005,7 @@ SQL的执行顺序：
 > ORDER BY 语句用于根据指定的列对结果集进行排序。**默认升序**
 >
 
-**依赖校对集。**
+**依赖校对集**
 
 **order by** 子句是select的最后的一个子句。
 
@@ -1053,6 +1055,7 @@ Insert into tbl_name select …;
 1. 没有给出要插入的列，那么表示插入所有列；
 2. 值的个数必须是该表的列的个数；
 3. 值的顺序，必须与表创建时给出的列的顺序相同。
+4. 即使表中有数据，不能用where插入数据
 
 #### Update 
 
@@ -1409,9 +1412,9 @@ ALTER TABLE table_name DROP INDEX index_name;
 
 ```sql
 -- 语法
-SELECT TOP number|percent column_name(s) FROM 
+SELECT TOP number|percent column_name(s) FROM table_name;
 -- 实例
-table_name;SELECT TOP 2 * FROM Persons;
+SELECT TOP 2 * FROM Persons;
 SELECT TOP 50 PERCENT * FROM Persons;
 SELECT top 10 * FROM Table_Name ORDER BY ID DESC;
 ```
@@ -1603,7 +1606,7 @@ union
 
 SELECT INTO 语句从一个表中选取数据，然后把数据插入另一个表中，保存起来。
 
-**SELECT INTO** **语句常用于创建表的备份复件或者用于对记录进行存档。**
+**SELECT INTO 语句常用于创建表的备份复件或者用于对记录进行存档**。
 
 下面的例子会创建一个名为 "Persons_Order_Backup" 的新表，其中包含了从 Persons 和 Orders 两个表中取得的信息：
 
@@ -1619,7 +1622,7 @@ Select * into outfile ‘文件地址’ from xxxx
 
 可以自动创建文件，不能重写已有文件。默认的，采用行区分记录。制表符区分字段。
 
-**为了满足特殊的需求，可以采用不同的分割方式。支持，在导出数据，指定记录和字段的分割方式。**
+**为了满足特殊的需求，可以采用不同的分割方式。支持，在导出数据，指定记录和字段的分割方式**。
 
 ```sql
 Select * into outfile ‘c:/amp/one’
@@ -2148,7 +2151,7 @@ SELECT COUNT(Customer) AS CustomerNilsen FROM Orders WHERE Customer='Carter';
 
 ## GROUP BY 
 
-> GROUP BY 语句用于结合合计函数，**根据一个或多个列对结果集进行分组。**
+> GROUP BY 语句用于结合合计函数，**根据一个或多个列对结果集进行分组**。
 >
 
 我们拥有下面这个 "Orders" 表：
@@ -2178,7 +2181,7 @@ SELECT Customer，SUM(OrderPrice) FROM Orders GROUP BY Customer;
 
 ## HAVING 
 
-在 SQL 中增加 HAVING 子句原因是，**WHERE** **关键字无法与合计函数一起使用。**
+在 SQL 中增加 HAVING 子句原因是，**WHERE关键字无法与合计函数一起使用**。
 
  
 
@@ -2442,17 +2445,23 @@ SELECT * FROM employees WHERE hire_date = (SELECT DISTINCT hire_date FROM employ
 
 - **查找薪资大于其经理薪资的员工信息**
 
+  ```sql
   SELECT E1.NAME AS Employee FROM Employee E1 INNER JOIN Employee E2 ON E1.ManagerId = E2.Id AND E1.Salary > E2.Salary;
+  ```
 
 - **查找没有订单的顾客信息：**
 
   左外链接
 
+  ```sql
   SELECT C.Name AS Customers FROM Customers C LEFT JOIN Orders O ON C.Id = O.CustomerId WHERE O.CustomerId IS NULL;
+  ```
 
   子查询
 
+  ```sql
   WHERE Id NOT IN ( SELECT CustomerId FROM Orders );
+  ```
 
 - **将得分排序，并统计排名：**
 
@@ -2462,3 +2471,4 @@ SELECT * FROM employees WHERE hire_date = (SELECT DISTINCT hire_date FROM employ
   SELECT S1.score,COUNT( DISTINCT S2.score ) Rank FROM Scores S1 INNER JOIN Scores S2 ON S1.score <= S2.score GROUP BY S1.id,S1.score ORDER BY S1.score DESC;
   select Score, (select count(distinct Score) from Scores s2 where s2.Score >= s1.Score) Rank from Scores s1 order by Score DE;
   ```
+
