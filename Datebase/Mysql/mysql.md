@@ -1004,7 +1004,7 @@ mysql中匹配模式不区分大小写
 | **1、字符串函数**                                            |                                                              |
 | ASCII(str)                                                   | 返回字符串str的最左面字符的ASCII代码值                       |
 | CONCAT(str1,str2,...)                                        | 返回来自于参数连结的字符串。如果任何参数是NULL，返回NULL。可以有超过2个的参数。一个数字参数被变换为等价的字符串形式 |
-| LOCATE(substr,str)                                           | 返回子串substr在字符串str第一个出现的位置，如果substr不是在str里面，返回0。select LOCATE('bar', 'foobarbar')；结果：4 |
+| locate(substr,str)                                           | 返回子串substr在字符串str第一个出现的位置，如果substr不是在str里面，返回0。select LOCATE('bar', 'foobarbar')；结果：4 |
 | char_length()                                                | **按字符个数长度**（中英文字符一致）；<br/>在UTF-8编码中：一个中文等于三个字节，中文标点占三个字节。一个英文字符等于一个字节，英文标点占一个字节。<br/>Unicode编码：一个英文等于两个字节，一个中文（含繁体）等于两个字节。中文标点，英文标点占两个字节。 |
 | length()                                                     | 返回字符串str的长度，**多少个字节**。LENGTH("开心工作")=12；LENGTH("text")=4；latin1=1个字节、unicode=2个字节、UTF8=3个字节； |
 | INSTR(str,substr)                                            | 返回子串substr在字符串str中的第一个出现的位置，从1开始数     |
@@ -1030,8 +1030,8 @@ mysql中匹配模式不区分大小写
 | **四、数字函数**                                             |                                                              |
 | ROUND(X)                                                     | 返回参数X的四舍五入的一个整数                                |
 | TRUNCATE(X,D)                                                | 其作用就是按照小数位数，进行数值截取（此处的截取是按保留位数直接进行截取，没有四舍五入）。 |
-| CEILING(X)                                                   | 返回不小于X的最小整数值；select CEILING(1.23)为2;<br/>select CEILING(-1.23)为-1; |
-| FLOOR(X)                                                     | 返回不大于X的最大整数值；select FLOOR(1.23)为1;<br/>select FLOOR(-1.23)为-2; |
+| CEILING(X)：天花板，向上取                                   | 返回不小于X的最小整数值；select CEILING(1.23)为2;<br/>select CEILING(-1.23)为-1; |
+| FLOOR(X)：地板，向下取                                       | 返回不大于X的最大整数值；select FLOOR(1.23)为1;<br/>select FLOOR(-1.23)为-2; |
 | ABS(X)                                                       | 返回X的绝对值                                                |
 | MOD(N,M)或%                                                  | 返回N被M除的余数                                             |
 |                                                              |                                                              |
