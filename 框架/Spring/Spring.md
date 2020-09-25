@@ -303,11 +303,13 @@ public class JuiceMaker {
 </beans>
 ```
 
-**总结：**IoC 和 DI 其实是同一个概念的不同角度描述，DI 相对 IoC 而言，明确描述了“被注入对象依赖 IoC 容器配置依赖对象。” 
+**总结：**IoC 和 DI 其实是同一个概念的不同角度描述，DI 相对 IoC 而言，明确描述了”被注入对象依赖 IoC 容器配置依赖对象” 。
 
 #### 属性依赖注入
 
-**构造方法注入** 
+Spring会在调用构造函数前把构造函数需要的依赖对象都实例化好，然后再把这些实例化后的对象作为参数去调用构造函数。
+
+##### 构造方法注入 
 
  	`<constructor-arg>` 用于配置构造方法一个参数argument
 
@@ -326,14 +328,16 @@ public class JuiceMaker {
 
 ​      `<constructor-arg name="username" value="jack"></constructor-arg>`
 
-​    例如2：【类型type 和  索引 index】
+​    例如2：【类型 type 和索引 index】
 
 ```xml
-      <constructor-arg index="0" type="java.lang.String" value="1"></constructor-arg>
-      <constructor-arg index="1" type="java.lang.Integer" value="2"></constructor-arg>
+<constructor-arg index="0" type="java.lang.String" value="1"></constructor-arg>
+<constructor-arg index="1" type="java.lang.Integer" value="2"></constructor-arg>
 ```
 
-**setter方法注入**
+##### setter方法注入
+
+Spring调用一个对象的set方法注入前，这个对象必须先被实例化。所以在“使用set方法注入’’的情况下，Spring会首先调用对象的构造函数。
 
 ```xml
 //普通数据 
@@ -348,9 +352,7 @@ public class JuiceMaker {
         <ref bean="另一个bean"/>
 ```
 
-
-
-**集合的注入**
+##### 集合的注入
 
 都是给`<property>`添加子标签
 
@@ -553,17 +555,12 @@ public ProxyFactory(Object target){
 
 ### AOP 介绍
 
-**AOP 即 Aspect Oriented Program 面向切面编程**
-
-首先，在面向切面编程的思想里面，把功能分为**核心业务功能，和周边功能。**
-
-所谓的核心业务，比如登陆，增加数据，删除数据都叫核心业务
-
-所谓的周边功能，比如性能统计，日志，事务管理等等。重复代码就叫做周边功能，关注点形成的类，就叫切面(类)！
-
-周边功能在 Spring 的面向切面编程AOP思想里，**即被定义为切面**
-
-在面向切面编程AOP的思想里面，核心业务功能和切面功能**分别独立进行开发**，然后把切面功能和核心业务功能 "编织" 在一起，这就叫AOP。
+> **AOP 即 Aspect Oriented Program 面向切面编程，一种设计模式，Spring提供了一种实现**。
+>
+> > 在面向切面编程AOP的思想里面，核心业务功能和切面功能**分别独立进行开发**，然后把切面功能和核心业务功能 "编织" 在一起，这就叫AOP。
+> >
+> > 首先，在面向切面编程的思想里面，把功能分为**核心业务功能，和周边功能**。所谓的核心业务，比如登陆，增加数据，删除数据都叫核心业务；所谓的周边功能，比如性能统计，日志，事务管理等等。重复代码就叫做周边功能，关注点形成的类，就叫切面(类)！周边功能在 Spring 的面向切面编程AOP思想里，**即被定义为切面**。
+> >
 
 **AOP 当中的概念：**
 
@@ -589,7 +586,7 @@ public ProxyFactory(Object target){
 
 （6）目标对象（Target Object）： 被一个或者多个切面（aspect）所通知（advise）的对象。也有人把它叫做 被通知（adviced） 对象。 既然Spring AOP是通过运行时代理实现的，这个对象永远是一个 被代理（proxied） 对象。
 
-（7）织入（Weaving）：**指把增强应用到目标对象来创建新的代理对象的过程。Spring是在运行时完成织入**。
+（7）织入（Weaving）：指把增强应用到目标对象来创建新的代理对象的过程。Spring是在运行时完成织入。
 
 #### 一个例子
 
@@ -854,7 +851,9 @@ public class AnnotationScan {
 
 @ContextConfiguration这个注解又在Spring的test包下。
 
-#### XML配置根据名字
+#### byName
+
+> 通过参数名自动装配，Spring容器查找beans的属性，这些beans在XML配置文件中被设置为byName。之后容器试图匹配、装配和该bean的属性具有相同名字的bean。
 
 ```xml
    <bean id="userDao" class="UserDao"/>
@@ -867,14 +866,14 @@ public class AnnotationScan {
    <bean id="userService" class="UserService" autowire="byName"/>
 ```
 
-#### XML配置根据类型
+#### byType
 
-如果使用了根据类型来自动装配，那么在IOC容器中只能有一个这样的类型，否则就会报错！
+> 通过参数的数据类型自动自动装配，Spring容器查找beans的属性，这些beans在XML配置文件中被设置为byType。之后容器试图匹配和装配和该bean的属性类型一样的bean。如果有多个bean符合条件，则抛出错误。可以通过设置 dependency-check="objects"来指定应该抛出异常。
 
 ```xml
 <bean id="userDao" class="UserDao"/>
    <!--
-     1.通过名字来自动装配
+     1.通过类型来自动装配
      2.发现userService中有个叫userDao的属性
      3.看看IOC容器***\*UserDao类型\****的对象
      4.如果有，就装配进去
@@ -882,15 +881,23 @@ public class AnnotationScan {
    <bean id="userService" class="UserService" autowire="byType"/>
 ```
 
- default：由上级标签`<beans>`的default-autowire属性确定。我们也可以**使用默认自动分配**
+#### default
 
-  ![img](Spring.image/wps10.jpg)
+> 由上级标签`<beans>`的default-autowire属性确定。我们也可以**使用默认自动分配**。
 
-#### 其他配置依据
+![img](Spring.image/wps10.jpg)
 
-constructor：类似于byType，不过是应用于构造器的参数，如果正好有一个Bean与构造器的参数类型相同则可以自动装配，否则会导致错误。
+#### constructor
 
-autodetect：如果有默认的构造器，则通过constructor的方式进行自动装配，否则使用byType的方式进行自动装配。
+> 类似于byType，不过是应用于构造器的参数，如果正好有一个Bean与构造器的参数类型相同则可以自动装配，否则会导致错误。
+
+#### autodetect
+
+> 如果有默认的构造器，则通过constructor的方式进行自动装配，否则使用byType的方式进行自动装配。
+
+#### no模式
+
+> 就是不使用自动装配，在很多企业不鼓励使用自动装配，因为它对应Bean之间的参考依赖关系不清晰。
 
 ### XML配置方式
 
@@ -1029,7 +1036,7 @@ public class Factory {
 
 
 
- **Map**
+**Map**
 
 通过`<map>`标签定义，`<map>`标签里可以使用多个`<entry>`作为子标签。每个条目包含一个键和一个值。必须在`<key>`标签里定义键。
 
@@ -1068,8 +1075,8 @@ public class Factory {
 
 ```java
 @org.springframework.context.annotation.Configuration
-     public class Configuration {
-   }
+public class Configuration {
+}
 ```
 
 **使用配置类创建bean:**
@@ -1096,9 +1103,9 @@ public class Configuration {
 
 ### 三种方式混合使用
 
-如果JavaConfig的配置类是分散的，我们一般再创建一个更高级的配置类（root），然后使用`@Import`来将配置类进行组合
+如果 JavaConfig 的配置类是分散的，我们一般再创建一个更高级的配置类（root），然后使用`@Import`来将配置类进行组合
 
-如果XML的配置文件是分散的，我们也是创建一个更高级的配置文件（root），然后使用来将配置文件组合
+如果XML的配置文件是分散的，我们也是创建一个更高级的配置文件（root），然后使用来将配置文件组合。
 
 ## 五、高级装配
 
@@ -1405,6 +1412,7 @@ application.setAdditionalProfiles("new_dev");
 
 **AOP 相关注解**
 
+```java
 @Aspect
 
 @Before
@@ -1415,11 +1423,12 @@ application.setAdditionalProfiles("new_dev");
 
 @After
 
-@Arround
+@Around
 
 @Pointcut
 
 @Order
+```
 
 **Java配置类相关注解**
 
@@ -1443,11 +1452,9 @@ spring封装了事务管理的代码：打开事务，提交事务，回滚事�
 
 真正的数据库层的事务提交和回滚是通过**binlog或者redo log**实现的
 
- 
+Spring的事务管理分为`编程式的事务管理`与`声明式的事务管理`。
 
-spring的事务管理分为编程式的事务管理与声明式的事务管理；
-
-所有事务管理都抽象为事务操作管理类（PlatformTransactionManager），事务状态（TransactionStatus）和定义了**事务的传播行为和隔离级别**的类（TransactionDefinition）这三个接口；
+所有事务管理都抽象为事务操作管理类（PlatformTransactionManager），事务状态（TransactionStatus）和定义了**事务的传播行为和隔离级别**的类（TransactionDefinition）这三个接口；  
 
 ![img](Spring.image/wps11.jpg) 
 
@@ -1459,7 +1466,7 @@ spring的事务管理分为编程式的事务管理与声明式的事务管理�
 
 **TransactionManager**
 
-事务的隔离级别，1.读未提交；2.读已提交；3.可重复读；4.串行化
+事务的隔离级别，1.读未提交；2.读已提交；3.可重复读；4.串行化；数据库系统实现事务的隔离级别。
 
 是否只读，true（只读） false
 
